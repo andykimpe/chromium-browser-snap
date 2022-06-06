@@ -1,0 +1,18 @@
+diff --git a/chrome/installer/linux/common/wrapper b/chrome/installer/linux/common/wrapper
+index 63699e0..7b5ee3e 100755
+--- a/chrome/installer/linux/common/wrapper
++++ b/chrome/installer/linux/common/wrapper
+
+@@ -46,4 +46,11 @@
+ exec 2> >(exec cat >&2)
+ 
+ # Note: exec -a below is a bashism.
+-exec -a "$0" "$HERE/@@PROGNAME@@" "$@"
++exec -a "$0" "$HERE/@@PROGNAME@@" "$@" \
++--use-gl=egl \
++--enable-features=VaapiVideoDecoder,VaapiVideoEncoder \
++--disable-features=UseChromeOSDirectVideoDecoder \
++--ignore-gpu-blocklist \
++--disable-gpu-driver-bug-workaround \
++--ozone-platform=wayland
++

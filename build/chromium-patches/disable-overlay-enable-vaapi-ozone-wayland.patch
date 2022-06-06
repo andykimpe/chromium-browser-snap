@@ -1,0 +1,30 @@
+diff --git a/ui/ozone/platform/wayland/gpu/wayland_overlay_manager.cc b/ui/ozone/platform/wayland/gpu/wayland_overlay_manager.cc
+index e4cb8ec..4bcfa37 100644
+--- a/ui/ozone/platform/wayland/gpu/wayland_overlay_manager.cc
++++ b/ui/ozone/platform/wayland/gpu/wayland_overlay_manager.cc
+
+@@ -51,7 +51,9 @@
+     // the primary plane.
+     DCHECK(can_handle || candidate.plane_z_order != 0);
+ 
+-    candidate.overlay_handled = can_handle;
++    // Disable overlay
++    candidate.overlay_handled =
++        candidate.plane_z_order == 0 ? can_handle : false;
+   }
+ }
+ 
+
+diff --git a/ui/ozone/platform/wayland/ozone_platform_wayland.cc b/ui/ozone/platform/wayland/ozone_platform_wayland.cc
+index 661859754..42e927b7 100644
+--- a/ui/ozone/platform/wayland/ozone_platform_wayland.cc
++++ b/ui/ozone/platform/wayland/ozone_platform_wayland.cc
+
+@@ -289,6 +289,8 @@
+       // arbitrary position.
+       properties->supports_global_screen_coordinates = false;
+ 
++      properties->supports_vaapi = true;
++
+       initialised = true;
+     }

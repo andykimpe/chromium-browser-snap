@@ -25,3 +25,6 @@ expat-use-pkg-config.patch
 angle-use-pkg-config.patch
 swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
+wrapper-enable-hw-accel-wayland.patch
+reports-average-qp-false.patch
+disable-overlay-enable-vaapi-ozone-wayland.patch
