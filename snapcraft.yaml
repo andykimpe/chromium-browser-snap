@@ -322,6 +322,60 @@ parts:
       cd usr/bin
       ln -s /usr/bin/xdg-open xdg-email
 
+  intel-va-drivers:
+    plugin: nil
+    build-packages:
+      - autoconf
+      - libtool
+      - libdrm-dev
+      - xorg
+      - xorg-dev
+      - openbox
+      - libx11-dev
+      - libgl1-mesa-glx
+      - libgl1-mesa-dev
+      - cmake
+      - wget
+      - automake
+    override-build: |
+      set -eux
+      [ $SNAPCRAFT_TARGET_ARCH = "amd64" ] || exit
+
+      #Build Gmmlib
+      GMMLIB_VERSION=22.1.3
+      BUILD_DIR=gmmlib-intel-gmmlib-"$GMMLIB_VERSION"/build
+      wget -O - https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-"$GMMLIB_VERSION".tar.gz | tar -x -z
+      mkdir -p "$BUILD_DIR"
+      cd       "$BUILD_DIR"
+      cmake -DCMAKE_BUILD_TYPE=Release -DARCH=64 ..
+      make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
+      cd ../..
+
+      #Build Libva
+      VA_VERSION=2.14.0
+      wget -O - https://github.com/intel/libva/archive/refs/tags/"$VA_VERSION".tar.gz | tar -x -z
+      cd libva-"$VA_VERSION"
+      ./autogen.sh
+      make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
+      cd ../..
+
+      #Build the driver
+      DRIVER_VERSION=22.3.1
+      SOURCE_DIR=media-driver-intel-media-"$DRIVER_VERSION"
+      BUILD_DIR=build
+      wget -O - https://github.com/intel/media-driver/archive/refs/tags/intel-media-"$DRIVER_VERSION".tar.gz | tar -x -z
+      mkdir -p "$BUILD_DIR"
+      cd       "$BUILD_DIR"
+      cmake    ../$SOURCE_DIR
+      make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
+
+      T=$SNAPCRAFT_PART_INSTALL/usr/lib/x86_64-linux-gnu
+      mkdir -p $T/dri
+      mkdir -p /etc/profile.d
+      find . -name iHD_drv_video.so -exec mv {} "$T"/dri       \;
+      find . -name igfxcmrt64.so    -exec mv {} "$T"           \;
+      find . -name intel-media.sh   -exec mv {} $SNAPCRAFT_PART_INSTALL/etc/profile.d \;
+
   # VA-API drivers for HW-accelerated video decoding
   va-drivers:
     plugin: nil
@@ -329,7 +383,6 @@ parts:
       - mesa-va-drivers
       - on amd64:
         - i965-va-driver
-        - intel-media-va-driver
     stage:
       - usr/lib/*/dri/*_video.so
 
