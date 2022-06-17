@@ -152,6 +152,7 @@ parts:
     stage-packages:
       - libnss3
       - libxss1
+      - vainfo
     override-pull: |
       set -eux
       snapcraftctl pull
