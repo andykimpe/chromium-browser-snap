@@ -28,3 +28,4 @@ use-system-wide-eu-strip.patch
 wrapper-enable-hw-accel-wayland.patch
 reports-average-qp-false.patch
 disable-overlay-enable-vaapi-ozone-wayland.patch
+log-video-decoder.patch

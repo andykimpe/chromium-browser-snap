@@ -1,0 +1,57 @@
+diff --git a/media/base/decoder.cc b/media/base/decoder.cc
+index 5b3e69f..951ada8 100644
+--- a/media/base/decoder.cc
++++ b/media/base/decoder.cc
+@@ -23,36 +23,52 @@ bool Decoder::SupportsDecryption() const {
+ std::string GetDecoderName(VideoDecoderType type) {
+   switch (type) {
+     case VideoDecoderType::kUnknown:
++      DVLOG(1) << "Unknown Video Decoder";
+       return "Unknown Video Decoder";
+     case VideoDecoderType::kFFmpeg:
++      DVLOG(1) << "FFmpegVideoDecoder";
+       return "FFmpegVideoDecoder";
+     case VideoDecoderType::kVpx:
++      DVLOG(1) << "VpxVideoDecoder";
+       return "VpxVideoDecoder";
+     case VideoDecoderType::kAom:
++      DVLOG(1) << "AomVideoDecoder";
+       return "AomVideoDecoder";
+     case VideoDecoderType::kMojo:
++      DVLOG(1) << "MojoVideoDecoder";
+       return "MojoVideoDecoder";
+     case VideoDecoderType::kDecrypting:
++      DVLOG(1) << "DecryptingVideoDecoder";
+       return "DecryptingVideoDecoder";
+     case VideoDecoderType::kDav1d:
++      DVLOG(1) << "Dav1dVideoDecoder";
+       return "Dav1dVideoDecoder";
+     case VideoDecoderType::kFuchsia:
++      DVLOG(1) << "FuchsiaVideoDecoder";
+       return "FuchsiaVideoDecoder";
+     case VideoDecoderType::kMediaCodec:
++      DVLOG(1) << "MediaCodecVideoDecoder";
+       return "MediaCodecVideoDecoder";
+     case VideoDecoderType::kGav1:
++      DVLOG(1) << "Gav1VideoDecoder";
+       return "Gav1VideoDecoder";
+     case VideoDecoderType::kD3D11:
++      DVLOG(1) << "D3D11VideoDecoder";
+       return "D3D11VideoDecoder";
+     case VideoDecoderType::kVaapi:
++      DVLOG(1) << "VaapiVideoDecoder";
+       return "VaapiVideoDecoder";
+     case VideoDecoderType::kBroker:
++      DVLOG(1) << "VideoDecoderBroker";
+       return "VideoDecoderBroker";
+     case VideoDecoderType::kVda:
++      DVLOG(1) << "VDAVideoDecoder";
+       return "VDAVideoDecoder";
+     case VideoDecoderType::kV4L2:
++      DVLOG(1) << "V4L2VideoDecoder";
+       return "V4L2VideoDecoder";
+     case VideoDecoderType::kTesting:
++      DVLOG(1) << "Testing or Mock Video decoder";
+       return "Testing or Mock Video decoder";
+   }
+ }
