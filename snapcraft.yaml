@@ -361,7 +361,7 @@ parts:
       cd ../..
 
       #Build the driver
-      DRIVER_VERSION=22.3.1
+      DRIVER_VERSION=22.4.3
       SOURCE_DIR=media-driver-intel-media-"$DRIVER_VERSION"
       BUILD_DIR=build
       wget -O - https://github.com/intel/media-driver/archive/refs/tags/intel-media-"$DRIVER_VERSION".tar.gz | tar -x -z
