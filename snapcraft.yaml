@@ -115,7 +115,6 @@ parts:
       - launcher
       - manpage
       - pipewire
-      - va-drivers
     build-packages:
       - chrpath
       - default-jre-headless
@@ -377,16 +376,6 @@ parts:
       find . -name igfxcmrt64.so    -exec cp {} "$T"           \;
       find . -name 'libigdgmm.so.*' -exec cp {} "$T"           \;
       find . -name intel-media.sh   -exec cp {} $SNAPCRAFT_PART_INSTALL/etc/profile.d \;
-
-  # VA-API drivers for HW-accelerated video decoding
-  va-drivers:
-    plugin: nil
-    stage-packages:
-      - mesa-va-drivers
-      - on amd64:
-        - i965-va-driver
-    stage:
-      - usr/lib/*/dri/*_video.so
 
   # PipeWire
   pipewire:
