@@ -1,8 +1,15 @@
-diff --git a/media/base/decoder.cc b/media/base/decoder.cc
-index 5b3e69f..951ada8 100644
 --- a/media/base/decoder.cc
 +++ b/media/base/decoder.cc
-@@ -23,36 +23,52 @@ bool Decoder::SupportsDecryption() const {
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "media/base/decoder.h"
+-
++#include "base/logging.h"
+ #include "base/notreached.h"
+ 
+ namespace media {
+@@ -23,36 +23,52 @@
  std::string GetDecoderName(VideoDecoderType type) {
    switch (type) {
      case VideoDecoderType::kUnknown:
