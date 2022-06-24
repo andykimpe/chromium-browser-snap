@@ -375,6 +375,7 @@ parts:
       find . -name iHD_drv_video.so -exec cp {} "$T"/dri       \;
       find . -name igfxcmrt64.so    -exec cp {} "$T"           \;
       find . -name 'libigdgmm.so.*' -exec cp {} "$T"           \;
+      find . -name 'libva.*'        -exec cp {} "$T"           \;
       find . -name intel-media.sh   -exec cp {} $SNAPCRAFT_PART_INSTALL/etc/profile.d \;
 
   # PipeWire
