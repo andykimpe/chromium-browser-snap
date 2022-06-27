@@ -263,6 +263,9 @@ parts:
           $SNAPCRAFT_PART_SRC/chrome/app/resources/manpage.1.in \
           > $SNAPCRAFT_PART_INSTALL/man1/chrome.1
       gzip -9n $SNAPCRAFT_PART_INSTALL/man1/chrome.1
+    stage:
+      - -usr/lib/x86_64-linux-gnu/libva.so.2
+      - -usr/lib/x86_64-linux-gnu/libva.so.2.1400.0
     prime:
       - -etc/init.d
       - -etc/xdg
@@ -270,8 +273,6 @@ parts:
       - -usr/share/doc
       - -usr/share/lintian
       - -usr/share/man
-      - -usr/lib/x86_64-linux-gnu/libva.so.2
-      - -usr/lib/x86_64-linux-gnu/libva.so.2.1400.0
 
   launcher:
     plugin: dump
