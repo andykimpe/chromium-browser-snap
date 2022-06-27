@@ -115,6 +115,7 @@ parts:
       - launcher
       - manpage
       - pipewire
+      - intel-va-drivers
     build-packages:
       - chrpath
       - default-jre-headless
@@ -269,6 +270,8 @@ parts:
       - -usr/share/doc
       - -usr/share/lintian
       - -usr/share/man
+      - -usr/lib/x86_64-linux-gnu/libva.so.2
+      - -usr/lib/x86_64-linux-gnu/libva.so.2.1400.0
 
   launcher:
     plugin: dump
