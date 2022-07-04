@@ -371,7 +371,7 @@ parts:
       wget -O - https://github.com/intel/media-driver/archive/refs/tags/intel-media-"$DRIVER_VERSION".tar.gz | tar -x -z
       mkdir -p "$BUILD_DIR"
       cd       "$BUILD_DIR"
-      cmake -DENABLE_NONFREE_KERNELS=OFF -DBUILD_CMRTLIB=ON ../$SOURCE_DIR
+      cmake    ../$SOURCE_DIR
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
 
       T=$SNAPCRAFT_PART_INSTALL/usr/lib/x86_64-linux-gnu
