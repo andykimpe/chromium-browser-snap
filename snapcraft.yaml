@@ -342,6 +342,8 @@ parts:
       - cmake
       - wget
       - automake
+    stage-packages:
+      - mesa-vulkan-drivers
     override-build: |
       set -eux
       [ $SNAPCRAFT_TARGET_ARCH = "amd64" ] || exit
