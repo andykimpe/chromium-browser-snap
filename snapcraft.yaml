@@ -153,7 +153,6 @@ parts:
     stage-packages:
       - libnss3
       - libxss1
-      - vainfo
     override-pull: |
       set -eux
       snapcraftctl pull
@@ -264,10 +263,6 @@ parts:
           $SNAPCRAFT_PART_SRC/chrome/app/resources/manpage.1.in \
           > $SNAPCRAFT_PART_INSTALL/man1/chrome.1
       gzip -9n $SNAPCRAFT_PART_INSTALL/man1/chrome.1
-    # Vainfo pulls Libva (an older Libva as long as we using Focal).
-    # So we need to unstage this lest it clashes with Libva built from source.
-    stage:
-      - -usr/lib/*/libva*
     prime:
       - -etc/init.d
       - -etc/xdg
