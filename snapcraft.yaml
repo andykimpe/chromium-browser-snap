@@ -342,7 +342,7 @@ parts:
       - mesa-vulkan-drivers
     override-build: |
       set -eux
-      [ $SNAPCRAFT_TARGET_ARCH = "amd64" ] || exit
+      [ $SNAPCRAFT_TARGET_ARCH = "amd64" ] || exit 0
 
       #Build Gmmlib
       GMMLIB_VERSION=22.1.3
