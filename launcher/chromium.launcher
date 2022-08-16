@@ -115,6 +115,12 @@ if [ $WANT_HEADLESS -eq 0 ] ; then
   fi
 fi
 
+# Add necessary flags for VAAPI video en/decoding
+CHROMIUM_FLAGS="--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder"
+if [ -n "$WAYLAND_DISPLAY" ]; then
+    CHROMIUM_FLAGS="$CHROMIUM_FLAGS --ozone-platform=wayland"
+fi
+
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
   exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_FLAGS "$@"
 else
