@@ -27,5 +27,5 @@ angle-use-pkg-config.patch
 swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
 reports-average-qp-false.patch
-disable-overlay-enable-vaapi-ozone-wayland.patch
+enable-vaapi-ozone-wayland.patch
 log-video-decoder.patch
