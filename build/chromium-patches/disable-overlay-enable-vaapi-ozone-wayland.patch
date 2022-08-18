@@ -1,3 +1,7 @@
+Description: Enable VA-API flag on ozone wayland
+Author: Jianhui J Dai <jianhui.j.dai@intel.com>
+Forwarded: yes
+
 diff --git a/ui/ozone/platform/wayland/gpu/wayland_overlay_manager.cc b/ui/ozone/platform/wayland/gpu/wayland_overlay_manager.cc
 index e4cb8ec..4bcfa37 100644
 --- a/ui/ozone/platform/wayland/gpu/wayland_overlay_manager.cc

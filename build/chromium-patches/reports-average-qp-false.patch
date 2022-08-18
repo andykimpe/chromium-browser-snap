@@ -1,3 +1,11 @@
+Description: Per https://chromium-review.googlesource.com/c/3455642
+HW H264 encoder on Intel GPUs will not put average
+QP in slice/tile header since it works at CBR mode, this CL set
+|reports_average_qp| false on Intel platforms for H264 encoding to
+notify WebRTC so it can choose appropriate quality scaler.
+Author: Zhaoliang Ma <zhaoling.ma@intel.com>
+Forwarded: yes
+
 diff --git a/media/gpu/vaapi/vaapi_video_encode_accelerator.cc b/media/gpu/vaapi/vaapi_video_encode_accelerator.cc
 index 47ed0b97..9eb02a6b 100644
 --- a/media/gpu/vaapi/vaapi_video_encode_accelerator.cc

@@ -1,3 +1,8 @@
+Description: Report video decoder on stderr when the
+flag --enable-logging=stderr is given.
+Author: Nathan Teodosio <nathan.teodosio@canonical.com>
+Forwarded: not-needed
+
 --- a/media/base/decoder.cc
 +++ b/media/base/decoder.cc
 @@ -3,7 +3,7 @@
