@@ -184,6 +184,7 @@ parts:
       - make
       - mesa-common-dev
       - ninja-build
+      - pkg-config
       - python3-pkg-resources
       - python3-xcbgen
       - quilt
