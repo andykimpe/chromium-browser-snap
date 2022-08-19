@@ -37,4 +37,3 @@ ffmpeg_branding = "Chrome"
 use_system_minigbm = false
 use_intel_minigbm = true
 use_amdgpu_minigbm = true
-pkg_config = "/snap/gnome-3-38-2004/current/usr/bin/pkg-config"
