@@ -360,7 +360,7 @@ parts:
       cd libva-"$VA_VERSION"
       ./autogen.sh
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd ../..
+      cd ..
 
       #Build the driver
       DRIVER_VERSION=22.4.3
@@ -371,6 +371,7 @@ parts:
       cd       "$BUILD_DIR"
       cmake    ../$SOURCE_DIR
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
+      cd ..
 
       T=$SNAPCRAFT_PART_INSTALL/usr/lib/x86_64-linux-gnu
       mkdir -p $T/dri
