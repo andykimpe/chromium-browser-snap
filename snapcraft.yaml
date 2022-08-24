@@ -382,7 +382,11 @@ parts:
       mkdir -p $TARGET/dri
       find $SNAPCRAFT_STAGE -name iHD_drv_video.so -exec cp {} "$TARGET"/dri \;
       find $SNAPCRAFT_STAGE \( \
-           -name 'libigfxcmrt.so*' -o -name 'libigdgmm.so.*' -o -name 'libva*.so*' \
+           -name 'libigfxcmrt.so*' -o \
+           -name 'libigdgmm.so.*' -o \
+           -name 'libva*.so*' -o \
+           -name 'libvulkan*.so' -o \
+           -name 'libVkLayer_*.so' \
       \) -exec cp {} "$TARGET" \;
 
   # PipeWire
