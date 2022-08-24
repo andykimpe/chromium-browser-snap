@@ -340,14 +340,23 @@ parts:
       - xorg-dev
     stage-packages:
       - mesa-vulkan-drivers
+    override-pull: |
+      set -eux
+
+      GMMLIB_VERSION=22.1.3
+      wget -O - https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-"$GMMLIB_VERSION".tar.gz | tar -x -z
+
+      VA_VERSION=2.14.0
+      wget -O - https://github.com/intel/libva/archive/refs/tags/"$VA_VERSION".tar.gz | tar -x -z
+
+      DRIVER_VERSION=22.4.3
+      wget -O - https://github.com/intel/media-driver/archive/refs/tags/intel-media-"$DRIVER_VERSION".tar.gz | tar -x -z
     override-build: |
       set -eux
       [ $SNAPCRAFT_TARGET_ARCH = "amd64" ] || exit 0
 
       #Build Gmmlib
-      GMMLIB_VERSION=22.1.3
       BUILD_DIR=gmmlib-intel-gmmlib-"$GMMLIB_VERSION"/build
-      wget -O - https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-"$GMMLIB_VERSION".tar.gz | tar -x -z
       mkdir -p "$BUILD_DIR"
       cd       "$BUILD_DIR"
       cmake -DCMAKE_BUILD_TYPE=Release -DARCH=64 ..
@@ -355,18 +364,14 @@ parts:
       cd ../..
 
       #Build Libva
-      VA_VERSION=2.14.0
-      wget -O - https://github.com/intel/libva/archive/refs/tags/"$VA_VERSION".tar.gz | tar -x -z
       cd libva-"$VA_VERSION"
       ./autogen.sh
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
       cd ..
 
       #Build the driver
-      DRIVER_VERSION=22.4.3
       SOURCE_DIR=media-driver-intel-media-"$DRIVER_VERSION"
       BUILD_DIR=build
-      wget -O - https://github.com/intel/media-driver/archive/refs/tags/intel-media-"$DRIVER_VERSION".tar.gz | tar -x -z
       mkdir -p "$BUILD_DIR"
       cd       "$BUILD_DIR"
       cmake    ../$SOURCE_DIR
