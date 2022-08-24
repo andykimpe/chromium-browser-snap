@@ -354,29 +354,33 @@ parts:
     override-build: |
       set -eux
       [ $SNAPCRAFT_TARGET_ARCH = "amd64" ] || exit 0
+      ROOTDIR=$PWD
+
+      #For make install
+      export DESTDIR=$SNAPCRAFT_PART_INSTALL
 
       #Build Gmmlib
       BUILD_DIR=gmmlib-intel-gmmlib-"$GMMLIB_VERSION"/build
       mkdir -p "$BUILD_DIR"
       cd       "$BUILD_DIR"
-      cmake -DCMAKE_BUILD_TYPE=Release -DARCH=64 ..
+      cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DARCH=64 ..
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd ../..
+      cd "$ROOTDIR"
 
       #Build Libva
       cd libva-"$VA_VERSION"
-      ./autogen.sh
+      ./autogen.sh --prefix=/usr
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd ..
+      cd "$ROOTDIR"
 
       #Build the driver
       SOURCE_DIR=media-driver-intel-media-"$DRIVER_VERSION"
       BUILD_DIR=build
       mkdir -p "$BUILD_DIR"
       cd       "$BUILD_DIR"
-      cmake    ../$SOURCE_DIR
+      cmake -DCMAKE_INSTALL_PREFIX=/usr ../$SOURCE_DIR
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd ..
+      cd "$ROOTDIR"
 
       T=$SNAPCRAFT_PART_INSTALL/usr/lib/x86_64-linux-gnu
       mkdir -p $T/dri
