@@ -384,7 +384,6 @@ parts:
       find $SNAPCRAFT_STAGE \( \
            -name 'libigfxcmrt.so*' -o -name 'libigdgmm.so.*' -o -name 'libva*.so*' \
       \) -exec cp {} "$TARGET" \;
-      find . -name intel-media.sh   -exec cp {} $SNAPCRAFT_PART_INSTALL/etc/profile.d \;
 
   # PipeWire
   pipewire:
