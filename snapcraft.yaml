@@ -375,15 +375,15 @@ parts:
       cd       "$BUILD_DIR"
       cmake -DCMAKE_INSTALL_PREFIX=/usr ../$SOURCE_DIR
       make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd "$ROOTDIR"
-
-      T=$SNAPCRAFT_PART_INSTALL/usr/lib/x86_64-linux-gnu
-      mkdir -p $T/dri
-      mkdir -p /etc/profile.d
-      find . -name iHD_drv_video.so -exec strip {} \; -exec cp {} "$T"/dri \;
-      find . \( \
-           -name igfxcmrt64.so -o -name 'libigdgmm.so.*' -o -name 'libva*.so*' \
-      \) -exec cp {} "$T" \;
+      cd "$SNAPCRAFT_PART_BUILD"
+    override-prime: |
+      set -eux
+      TARGET=$SNAPCRAFT_PRIME/usr/lib/x86_64-linux-gnu
+      mkdir -p $TARGET/dri
+      find $SNAPCRAFT_STAGE -name iHD_drv_video.so -exec cp {} "$TARGET"/dri \;
+      find $SNAPCRAFT_STAGE \( \
+           -name 'libigfxcmrt.so*' -o -name 'libigdgmm.so.*' -o -name 'libva*.so*' \
+      \) -exec cp {} "$TARGET" \;
       find . -name intel-media.sh   -exec cp {} $SNAPCRAFT_PART_INSTALL/etc/profile.d \;
 
   # PipeWire
