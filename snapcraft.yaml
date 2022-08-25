@@ -116,7 +116,7 @@ parts:
       - launcher
       - manpage
       - pipewire
-      - intel-va-drivers
+      - va-drivers
     build-packages:
       - chrpath
       - default-jre-headless
@@ -323,59 +323,37 @@ parts:
       cd usr/bin
       ln -s /usr/bin/xdg-open xdg-email
 
-  intel-va-drivers:
-    plugin: nil
+  gmmlib:
+    source: https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-22.1.3.tar.gz
+    plugin: cmake
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DARCH=64
+      - -DCMAKE_INSTALL_PREFIX=/usr
+
+  libva:
+    source: https://github.com/intel/libva/archive/refs/tags/2.14.0.tar.gz
+    plugin: autotools
+    autotools-configure-parameters:
+      - --prefix=/usr
+
+  va-drivers:
+    source: https://github.com/intel/media-driver/archive/refs/tags/intel-media-22.4.3.tar.gz
+    after: [gmmlib, libva]
+    plugin: cmake
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
     build-packages:
-      - autoconf
-      - automake
-      - cmake
       - libdrm-dev
       - libgl1-mesa-dev
       - libgl1-mesa-glx
       - libtool
       - libx11-dev
       - openbox
-      - wget
       - xorg
       - xorg-dev
     stage-packages:
       - mesa-vulkan-drivers
-    build-environment:
-      - GMMLIB_VERSION: "22.1.3"
-      - VA_VERSION: "2.14.0"
-      - DRIVER_VERSION: "22.4.3"
-      - DESTDIR: "$SNAPCRAFT_STAGE" #Used by `make install`
-    override-pull: |
-      set -eux
-      wget -O - https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-"$GMMLIB_VERSION".tar.gz | tar -x -z
-      wget -O - https://github.com/intel/libva/archive/refs/tags/"$VA_VERSION".tar.gz | tar -x -z
-      wget -O - https://github.com/intel/media-driver/archive/refs/tags/intel-media-"$DRIVER_VERSION".tar.gz | tar -x -z
-    override-build: |
-      set -eux
-      [ $SNAPCRAFT_TARGET_ARCH = "amd64" ] || exit 0
-
-      #Build Gmmlib
-      BUILD_DIR=gmmlib-intel-gmmlib-"$GMMLIB_VERSION"/build
-      mkdir -p "$BUILD_DIR"
-      cd       "$BUILD_DIR"
-      cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DARCH=64 ..
-      make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd "$SNAPCRAFT_PART_BUILD"
-
-      #Build Libva
-      cd libva-"$VA_VERSION"
-      ./autogen.sh --prefix=/usr
-      make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd "$SNAPCRAFT_PART_BUILD"
-
-      #Build the driver
-      SOURCE_DIR=media-driver-intel-media-"$DRIVER_VERSION"
-      BUILD_DIR=build
-      mkdir -p "$BUILD_DIR"
-      cd       "$BUILD_DIR"
-      cmake -DCMAKE_INSTALL_PREFIX=/usr ../$SOURCE_DIR
-      make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-      cd "$SNAPCRAFT_PART_BUILD"
     override-prime: |
       set -eux
       TARGET=$SNAPCRAFT_PRIME/usr/lib/x86_64-linux-gnu
