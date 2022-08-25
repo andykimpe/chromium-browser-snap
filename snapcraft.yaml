@@ -344,7 +344,7 @@ parts:
       - GMMLIB_VERSION: "22.1.3"
       - VA_VERSION: "2.14.0"
       - DRIVER_VERSION: "22.4.3"
-      - DESTDIR: "$SNAPCRAFT_PART_INSTALL" #Used by `make install`
+      - DESTDIR: "$SNAPCRAFT_STAGE" #Used by `make install`
     override-pull: |
       set -eux
       wget -O - https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-"$GMMLIB_VERSION".tar.gz | tar -x -z
