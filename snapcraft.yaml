@@ -336,12 +336,16 @@ parts:
       PCFILE="$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig/igdgmm.pc"
       sed -i -e 's|includedir=/usr|includedir=${prefix}|' \
              -e 's|libdir=/usr|libdir=${prefix}|' $PCFILE
+    prime:
+      - usr/**/*.so*
 
   libva:
     source: https://github.com/intel/libva/archive/refs/tags/2.14.0.tar.gz
     plugin: autotools
     autotools-configure-parameters:
       - --prefix=/usr
+    prime:
+      - usr/**/*.so*
 
   va-drivers:
     source: https://github.com/intel/media-driver/archive/refs/tags/intel-media-22.4.3.tar.gz
@@ -360,18 +364,11 @@ parts:
       - xorg-dev
     stage-packages:
       - mesa-vulkan-drivers
-    override-prime: |
-      set -eux
-      TARGET=$SNAPCRAFT_PRIME/usr/lib/x86_64-linux-gnu
-      mkdir -p $TARGET/dri
-      find $SNAPCRAFT_STAGE -name iHD_drv_video.so -exec cp {} "$TARGET"/dri \;
-      find $SNAPCRAFT_STAGE \( \
-           -name 'libigfxcmrt.so*' -o \
-           -name 'libigdgmm.so.*' -o \
-           -name 'libva*.so*' -o \
-           -name 'libvulkan*.so' -o \
-           -name 'libVkLayer_*.so' \
-      \) -exec cp {} "$TARGET" \;
+    prime:
+      - usr/**/iHD_drv_video.so
+      - usr/**/libigfxcmrt.so*
+      - usr/**/libvulkan_*.so
+      - usr/**/libVkLayer_*.so
 
   # PipeWire
   pipewire:
