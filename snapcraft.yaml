@@ -330,6 +330,12 @@ parts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DARCH=64
       - -DCMAKE_INSTALL_PREFIX=/usr
+    override-stage: |
+      set -ex
+      snapcraftctl stage
+      PCFILE="$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig/igdgmm.pc"
+      sed -i -e 's|includedir=/usr|includedir=${prefix}|' \
+             -e 's|libdir=/usr|libdir=${prefix}|' $PCFILE
 
   libva:
     source: https://github.com/intel/libva/archive/refs/tags/2.14.0.tar.gz
