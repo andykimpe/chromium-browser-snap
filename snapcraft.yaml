@@ -354,6 +354,7 @@ parts:
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/usr
     build-packages:
+      - binutils #For `strip`
       - libdrm-dev
       - libgl1-mesa-dev
       - libgl1-mesa-glx
