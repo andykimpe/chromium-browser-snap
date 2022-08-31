@@ -29,3 +29,4 @@ use-system-wide-eu-strip.patch
 reports-average-qp-false.patch
 enable-vaapi-ozone-wayland.patch
 log-video-decoder.patch
+include-libva-config.patch
