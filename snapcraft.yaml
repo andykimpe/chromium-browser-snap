@@ -365,7 +365,7 @@ parts:
       - xorg-dev
     stage-packages:
       - mesa-vulkan-drivers
-    override-stage:
+    override-stage: |
       set -ex
       snapcraftctl stage
       strip "$SNAPCRAFT_STAGE/usr/lib/dri/iHD_drv_video.so"
