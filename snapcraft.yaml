@@ -368,8 +368,10 @@ parts:
     override-stage: |
       set -ex
       snapcraftctl stage
-      mkdir -p "$SNAPCRAFT_STAGE/usr/lib/dri/"
-      find "$SNAPCRAFT_STAGE" -name iHD_drv_video.so -exec strip {} \; -exec mv {} "$SNAPCRAFT_STAGE/usr/lib/dri/" \;
+      stagelibs="$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET"
+      mkdir -p "$stagelibs/dri"
+      find "$SNAPCRAFT_STAGE" -name iHD_drv_video.so -exec strip {} \; -exec mv {} "$stagelibs/dri/" \;
+      find "$SNAPCRAFT_STAGE" -name libva*.so* -exec mv {} "$stagelibs" \;
     prime:
       - usr/**/iHD_drv_video.so
       - usr/**/libigfxcmrt.so*
