@@ -365,6 +365,7 @@ parts:
       - xorg-dev
     stage-packages:
       - mesa-vulkan-drivers
+      - libxcb-randr0
     override-stage: |
       set -ex
       snapcraftctl stage
@@ -377,6 +378,7 @@ parts:
       - usr/**/libigfxcmrt.so*
       - usr/**/libvulkan_*.so
       - usr/**/libVkLayer_*.so
+      - usr/**/libxcb-randr.so*
 
   # PipeWire
   pipewire:
