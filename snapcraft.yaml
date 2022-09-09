@@ -366,11 +366,13 @@ parts:
     stage-packages:
       - mesa-vulkan-drivers
       - libxcb-randr0
-    override-stage: |
-      set -ex
-      snapcraftctl stage
-      mkdir -p "$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri"
-      find "$SNAPCRAFT_STAGE" -name iHD_drv_video.so -exec strip {} \; -exec mv {} "$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri" \;
+    override-build: |
+      # Strip iHD driver and move it from /usr/lib to /usr/lib/@triplet@
+      snapcraftctl build
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri"
+      find "$SNAPCRAFT_PART_INSTALL" -name 'iHD_drv_video.so' \
+        -exec strip {} \; \
+        -exec mv {} "$SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri" \;
     prime:
       - usr/**/iHD_drv_video.so
       - usr/**/libigfxcmrt.so*
