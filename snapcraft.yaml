@@ -344,6 +344,12 @@ parts:
     plugin: autotools
     autotools-configure-parameters:
       - --prefix=/usr
+    override-build: |
+      # Move libva files from /usr/lib to /usr/lib/@triplet@
+      snapcraftctl build
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET"
+      find "$SNAPCRAFT_PART_INSTALL" -name 'libva*.so*' -exec \
+        mv -t "$SNAPCRAFT_PART_INSTALL"/usr/lib/$SNAPCRAFT_ARCH_TRIPLET {} +
     prime:
       - usr/**/*.so*
 
