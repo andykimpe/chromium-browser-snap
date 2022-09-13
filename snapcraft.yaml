@@ -324,7 +324,7 @@ parts:
       ln -s /usr/bin/xdg-open xdg-email
 
   gmmlib:
-    source: https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-22.1.3.tar.gz
+    source: https://github.com/intel/gmmlib/archive/refs/tags/intel-gmmlib-22.1.8.tar.gz
     plugin: cmake
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
@@ -340,7 +340,7 @@ parts:
       - usr/**/*.so*
 
   libva:
-    source: https://github.com/intel/libva/archive/refs/tags/2.14.0.tar.gz
+    source: https://github.com/intel/libva/archive/refs/tags/2.15.0.tar.gz
     plugin: autotools
     autotools-configure-parameters:
       - --prefix=/usr
@@ -354,7 +354,7 @@ parts:
       - usr/**/*.so*
 
   va-drivers:
-    source: https://github.com/intel/media-driver/archive/refs/tags/intel-media-22.4.3.tar.gz
+    source: https://github.com/intel/media-driver/archive/refs/tags/intel-media-22.4.4.tar.gz
     after: [gmmlib, libva]
     plugin: cmake
     cmake-parameters:
