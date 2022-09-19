@@ -157,7 +157,7 @@ parts:
       set -eux
       snapcraftctl pull
       . chrome/VERSION
-      snapcraftctl set-version "$MAJOR.$MINOR.$BUILD.$PATCH"
+      snapcraftctl set-version "$MAJOR.$MINOR.$BUILD.$PATCH-hwacc"
     override-build: |
       set -eux
 
