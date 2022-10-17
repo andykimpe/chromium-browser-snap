@@ -218,7 +218,7 @@ parts:
       # because dri.pc (from mesa-common-dev) comes from the archive, not from
       # the gnome platform snap.
       cd /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
-      ln -s libdrm.pc libdrm-uninstalled.pc
+      ln -fs libdrm.pc libdrm-uninstalled.pc
       cd -
 
       $OUT/gn gen $OUT
@@ -328,8 +328,8 @@ parts:
     plugin: cmake
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
-      - -DARCH=64
       - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DRUN_TEST_SUITE=ON
     override-stage: |
       set -ex
       snapcraftctl stage
@@ -341,17 +341,17 @@ parts:
 
   libva:
     source: https://github.com/intel/libva/archive/refs/tags/2.14.0.tar.gz
-    plugin: autotools
-    autotools-configure-parameters:
-      - --prefix=/usr
-    override-build: |
-      # Move libva files from /usr/lib to /usr/lib/@triplet@
-      snapcraftctl build
-      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET"
-      find "$SNAPCRAFT_PART_INSTALL" -name 'libva*.so*' -exec \
-        mv -t "$SNAPCRAFT_PART_INSTALL"/usr/lib/$SNAPCRAFT_ARCH_TRIPLET {} +
-    prime:
-      - usr/**/*.so*
+    plugin: meson # Because autotools makes a mess of this.
+    meson-parameters:
+      - --prefix /usr
+    build-packages:
+      - pkg-config
+      - libdrm-dev
+      - xorg-dev
+      - libxcb-dri3-dev
+      - libgl1-mesa-dev
+      - libgl1-mesa-glx
+      - libwayland-dev
 
   va-drivers:
     source: https://github.com/intel/media-driver/archive/refs/tags/intel-media-22.4.3.tar.gz
@@ -374,12 +374,9 @@ parts:
       - libxcb-randr0
       - mesa-va-drivers
     override-build: |
-      # Strip iHD driver and move it from /usr/lib to /usr/lib/@triplet@
+      # Strip iHD driver.
       snapcraftctl build
-      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri"
-      find "$SNAPCRAFT_PART_INSTALL" -name 'iHD_drv_video.so' \
-        -exec strip {} \; \
-        -exec mv {} "$SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri" \;
+      strip $SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri/iHD_drv_video.so
     prime:
       - usr/**/*_video.so
       - usr/**/libigfxcmrt.so*
