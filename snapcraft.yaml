@@ -20,7 +20,7 @@ apps:
       CHROME_DESKTOP: chromium.desktop
       CHROME_CONFIG_HOME: $SNAP_USER_COMMON
       GTK_USE_PORTAL: 1
-      LIBVA_DRIVERS_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
+      LIBVA_DRIVERS_PATH: $SNAP/va-driver-non-free/dri:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
       SPA_PLUGIN_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/spa-0.2
       PIPEWIRE_CONFIG_NAME: $SNAP/usr/share/pipewire/pipewire.conf
       PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pipewire-0.3
@@ -85,6 +85,9 @@ plugs:
   etc-chromium-browser-policies:
     interface: system-files
     read: [/etc/chromium-browser/policies]
+  va-driver-non-free:
+    interface: content
+    target: $SNAP/va-driver-non-free
 
 layout:
   /usr/lib/man-db:
@@ -359,6 +362,7 @@ parts:
     plugin: cmake
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DENABLE_NONFREE_KERNELS=ON # Switch to OFF if we decide to ship those separately.
     build-packages:
       - binutils #For `strip`
       - libdrm-dev
