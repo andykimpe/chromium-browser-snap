@@ -1,0 +1,27 @@
+From 40002f97faf2f3ff507446f9b679ce71724d9f6e Mon Sep 17 00:00:00 2001
+From: Yaowei Zhou <yaowei.zhou@intel.com>
+Date: Thu, 01 Sep 2022 12:43:47 +0800
+Subject: [PATCH] Enable hardware encode and decode, one-copy runtime flag
+
+Add the hardware encode, decode and one-copy flags in the wrapper.
+
+Bug: N/A
+Change-Id: I278894f1ee77094c5b02fa4da32c9e028691a8b1
+---
+
+diff --git a/chrome/installer/linux/common/wrapper b/chrome/installer/linux/common/wrapper
+index 63699e0..2fe7eb8 100755
+--- a/chrome/installer/linux/common/wrapper
++++ b/chrome/installer/linux/common/wrapper
+@@ -46,4 +46,10 @@
+ exec 2> >(exec cat >&2)
+ 
+ # Note: exec -a below is a bashism.
+-exec -a "$0" "$HERE/@@PROGNAME@@" "$@"
++exec -a "$0" "$HERE/@@PROGNAME@@" "$@" \
++--use-gl=egl \
++--enable-features=VaapiVideoDecoder,VaapiVideoEncoder,UseChromeOSDirectVideoDecoder \
++--ozone-platform=wayland \
++--enable-hardware-overlays="" \
++--video-capture-use-gpu-memory-buffer \
++--video-capture-use-external-dma-buffer

@@ -24,9 +24,11 @@ expat-use-pkg-config.patch
 angle-use-pkg-config.patch
 swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
-reports-average-qp-false.patch
-enable-vaapi-ozone-wayland.patch
 log-video-decoder.patch
 include-libva-config.patch
 dont-collect-motherboard-metrics.patch
 disable-crashpad.patch
+0edb0e8.diff 
+04db99d5.diff
+4ed5da1.diff 
+40002f9.diff

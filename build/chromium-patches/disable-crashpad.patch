@@ -355,7 +355,7 @@ Forwarded: no
 +
  namespace first_run {
  
- void ShowFirstRunDialog(Profile* profile) {
+ void ShowFirstRunDialog() {
 @@ -115,7 +127,13 @@
    GetWidget()->Hide();
    closed_through_accept_button_ = true;

@@ -23,8 +23,8 @@ Forwarded: not-needed
 -  stats->kind = "audio";
 +  stats->kind = std::string("audio");
    stats->transport_id = transport_id;
-   stats->codec_id = RTCCodecStatsIDFromMidDirectionAndPayload(
-       mid,
+   if (inbound_audio_stats.codec_id.is_defined()) {
+     stats->codec_id = *inbound_audio_stats.codec_id;
 @@ -534,8 +534,8 @@ void SetInboundRTPStreamStatsFromVideoRe
                                                  inbound_video);
    inbound_video->transport_id = transport_id;
@@ -103,8 +103,8 @@ Forwarded: not-needed
 -        CandidateTypeToRTCIceCandidateType(candidate.type());
 +        std::string(CandidateTypeToRTCIceCandidateType(candidate.type()));
      candidate_stats->priority = static_cast<int32_t>(candidate.priority());
- 
-     stats = candidate_stats.get();
+     candidate_stats->foundation = candidate.foundation();
+     auto related_address = candidate.related_address();
 @@ -1597,7 +1597,7 @@ void RTCStatsCollector::ProduceDataChann
      data_channel_stats->label = std::move(stats.label);
      data_channel_stats->protocol = std::move(stats.protocol);
