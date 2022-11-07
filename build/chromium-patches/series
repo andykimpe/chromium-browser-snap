@@ -16,9 +16,7 @@ build-script-armhf-use-sysroot.patch
 build-script-limit-compile-jobs.patch
 chromedriver-snap-compatibility.patch
 node-update-binaries-arch-specific.patch
-libaom-armhf-build-cpudetect.patch
 closure-compiler-use-system-wide-java.patch
-disable-crashpad.patch
 webrtc-fix-ambiguous-operator.patch
 pkg-config-rewrite-include-paths.patch
 dawn-use-pkg-config.patch
@@ -30,3 +28,5 @@ reports-average-qp-false.patch
 enable-vaapi-ozone-wayland.patch
 log-video-decoder.patch
 include-libva-config.patch
+dont-collect-motherboard-metrics.patch
+disable-crashpad.patch
