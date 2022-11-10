@@ -111,9 +111,13 @@ if [ $WANT_HEADLESS -eq 0 ] ; then
 fi
 
 # Add necessary flags for VAAPI video en/decoding
-CHROMIUM_VAAPI_FLAGS="--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder"
+CHROMIUM_VAAPI_FLAGS+=(
+    --enable-features=VaapiVideoDecoder,VaapiVideoEncoder,UseChromeOSDirectVideoDecoder
+    --enable-hardware-overlays=""
+    --video-capture-use-gpu-memory-buffer
+)
 if [ -n "$WAYLAND_DISPLAY" ]; then
-    CHROMIUM_VAAPI_FLAGS="$CHROMIUM_VAAPI_FLAGS --ozone-platform=wayland"
+    CHROMIUM_VAAPI_FLAGS+=(--ozone-platform=wayland)
 fi
 
 CHROMIUM_FLAGS+=(
@@ -123,10 +127,10 @@ CHROMIUM_FLAGS+=(
 )
 
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
-  exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_VAAPI_FLAGS "${CHROMIUM_FLAGS[@]}" "$@"
+  exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE "${CHROMIUM_VAAPI_FLAGS[@]}" "${CHROMIUM_FLAGS[@]}" "$@"
 else
   TEMP_PROFILE=$(mktemp -d)
   trap "rm -rf $TEMP_PROFILE" EXIT
   # we can't exec here as we need to clean-up the temporary profile
-  "$SNAP/usr/lib/chromium-browser/chrome" --user-data-dir=$TEMP_PROFILE --password-store=$PASSWORD_STORE $CHROMIUM_VAAPI_FLAGS "${CHROMIUM_FLAGS[@]}" "$@"
+  "$SNAP/usr/lib/chromium-browser/chrome" --user-data-dir=$TEMP_PROFILE --password-store=$PASSWORD_STORE "${CHROMIUM_VAAPI_FLAGS[@]}" "${CHROMIUM_FLAGS[@]}" "$@"
 fi
