@@ -27,7 +27,6 @@ use-system-wide-eu-strip.patch
 log-video-decoder.patch
 include-libva-config.patch
 dont-collect-motherboard-metrics.patch
-disable-crashpad.patch
 0edb0e8.diff 
 04db99d5.diff
 4ed5da1.diff 
