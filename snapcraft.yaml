@@ -141,6 +141,7 @@ parts:
       - libnss3-dev
       - libpam0g-dev
       - libpci-dev
+      - libsecret-1-dev
       - libssl-dev
       - libva-dev
       - libxshmfence-dev

@@ -27,3 +27,4 @@ use-system-wide-eu-strip.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
 enable-webrtc-pipewire-capturer.patch
+libsecret.patch
