@@ -162,6 +162,7 @@ parts:
     stage-packages:
       - libnss3
       - libxss1
+      - libsecret-tools
     override-pull: |
       set -eux
       snapcraftctl pull
