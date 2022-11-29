@@ -123,6 +123,7 @@ parts:
       - manpage
       - pipewire
       - va-drivers
+      - libsecret
     build-packages:
       - chrpath
       - default-jre-headless
@@ -141,7 +142,6 @@ parts:
       - libnss3-dev
       - libpam0g-dev
       - libpci-dev
-      - libsecret-1-dev
       - libssl-dev
       - libva-dev
       - libxshmfence-dev
@@ -162,7 +162,6 @@ parts:
     stage-packages:
       - libnss3
       - libxss1
-      - libsecret-tools
     override-pull: |
       set -eux
       snapcraftctl pull
@@ -338,6 +337,18 @@ parts:
       mkdir -p usr/bin
       cd usr/bin
       ln -s /usr/bin/xdg-open xdg-email
+
+  libsecret:
+    source: https://gitlab.gnome.org/GNOME/libsecret.git
+    source-depth: 1
+    source-tag: '0.19.1'
+    plugin: meson
+    meson-parameters: [--prefix=/usr]
+    build-packages:
+      - libgcrypt20-dev
+      - xsltproc
+      - gtk-doc-tools
+      - valgrind
 
   # VA-API drivers for HW-accelerated video decoding
   va-drivers:
