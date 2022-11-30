@@ -345,10 +345,11 @@ parts:
     plugin: meson
     meson-parameters: 
       - --prefix=/usr
+      - -Dgtk_doc=false
+      - -Dmanpage=false
       - -Dgcrypt=false
     build-packages:
       - xsltproc
-      - gtk-doc-tools
       - valgrind
 
   # VA-API drivers for HW-accelerated video decoding
