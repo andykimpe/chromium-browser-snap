@@ -345,7 +345,6 @@ parts:
     plugin: meson
     meson-parameters: [--prefix=/usr]
     build-packages:
-      - libgcrypt20-dev
       - xsltproc
       - gtk-doc-tools
       - valgrind
