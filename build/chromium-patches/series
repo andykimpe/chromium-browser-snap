@@ -31,3 +31,5 @@ dont-collect-motherboard-metrics.patch
 04db99d5.diff
 4ed5da1.diff 
 40002f9.diff
+linker-oom-armhf.patch
+enable-webrtc-pipewire-capturer.patch
