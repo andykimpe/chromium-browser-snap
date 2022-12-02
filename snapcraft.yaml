@@ -341,12 +341,15 @@ parts:
   libsecret:
     source: https://gitlab.gnome.org/GNOME/libsecret.git
     source-depth: 1
-    source-tag: '0.19.1'
+    source-tag: '0.20.5'
     plugin: meson
-    meson-parameters: [--prefix=/usr]
+    meson-parameters:
+      - --prefix=/usr
+      - -Dgtk_doc=false
+      - -Dmanpage=false
+      - -Dgcrypt=false
     build-packages:
       - xsltproc
-      - gtk-doc-tools
       - valgrind
 
   # VA-API drivers for HW-accelerated video decoding
