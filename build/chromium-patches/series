@@ -17,7 +17,6 @@ build-script-limit-compile-jobs.patch
 chromedriver-snap-compatibility.patch
 node-update-binaries-arch-specific.patch
 closure-compiler-use-system-wide-java.patch
-webrtc-fix-ambiguous-operator.patch
 pkg-config-rewrite-include-paths.patch
 dawn-use-pkg-config.patch
 expat-use-pkg-config.patch
@@ -32,4 +31,3 @@ dont-collect-motherboard-metrics.patch
 4ed5da1.diff 
 40002f9.diff
 linker-oom-armhf.patch
-enable-webrtc-pipewire-capturer.patch
