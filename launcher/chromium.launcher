@@ -111,13 +111,15 @@ if [ $WANT_HEADLESS -eq 0 ] ; then
 fi
 
 # Add necessary flags for VAAPI video en/decoding
-CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder --enable-hardware-overlays="" --video-capture-use-gpu-memory-buffer --use-gl=egl --video-capture-use-external-dma-buffer'
+CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder --video-capture-use-gpu-memory-buffer --use-gl=egl --video-capture-use-external-dma-buffer'
 
 if [ -n "$WAYLAND_DISPLAY" ]; then
     CHROMIUM_VAAPI_FLAGS="--ozone-platform=wayland $CHROMIUM_VAAPI_FLAGS"
 fi
 
 CHROMIUM_FLAGS="--disable-features=TFLiteLanguageDetectionEnabled $CHROMIUM_FLAGS"
+
+CHROMIUM_FLAGS="--enable-hardware-overlays=single-fullscreen,single-on-top,underlay $CHROMIUM_FLAGS"
 
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
   exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_VAAPI_FLAGS $CHROMIUM_FLAGS "$@"
