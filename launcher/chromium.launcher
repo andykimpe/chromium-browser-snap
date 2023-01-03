@@ -111,7 +111,7 @@ if [ $WANT_HEADLESS -eq 0 ] ; then
 fi
 
 # Add necessary flags for VAAPI video en/decoding
-CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder,UseChromeOSDirectVideoDecoder --enable-hardware-overlays="" --video-capture-use-gpu-memory-buffer'
+CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder --enable-hardware-overlays="" --video-capture-use-gpu-memory-buffer'
 
 if [ -n "$WAYLAND_DISPLAY" ]; then
     CHROMIUM_VAAPI_FLAGS="--ozone-platform=wayland $CHROMIUM_VAAPI_FLAGS"
