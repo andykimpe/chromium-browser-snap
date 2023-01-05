@@ -21,6 +21,7 @@ apps:
       CHROME_CONFIG_HOME: $SNAP_USER_COMMON
       GTK_USE_PORTAL: 1
       LIBVA_DRIVERS_PATH: $SNAP/va-driver-non-free/dri:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
+      GFX_FEATURE_FILE: $SNAP_USER_COMMON/igfx_user_feature.txt
       SPA_PLUGIN_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/spa-0.2
       PIPEWIRE_CONFIG_NAME: $SNAP/usr/share/pipewire/pipewire.conf
       PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pipewire-0.3
