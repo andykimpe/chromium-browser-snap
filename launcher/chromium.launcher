@@ -111,7 +111,11 @@ if [ $WANT_HEADLESS -eq 0 ] ; then
 fi
 
 # Add necessary flags for VAAPI video en/decoding
-CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder --video-capture-use-gpu-memory-buffer --use-gl=egl --video-capture-use-external-dma-buffer'
+CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder --use-gl=egl --video-capture-use-external-dma-buffer'
+
+# The following flag should only be used on Intel GPUs, and when the binary was built with intel minigbm.
+# Which means we have to leave it out for now.
+#CHROMIUM_VAAPI_FLAGS="--video-capture-use-gpu-memory-buffer $CHROMIUM_VAAPI_FLAGS"
 
 if [ -n "$WAYLAND_DISPLAY" ]; then
     CHROMIUM_VAAPI_FLAGS="--ozone-platform=wayland $CHROMIUM_VAAPI_FLAGS"
