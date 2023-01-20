@@ -31,3 +31,4 @@ dont-collect-motherboard-metrics.patch
 4ed5da1.diff 
 40002f9.diff
 linker-oom-armhf.patch
+af887ba.diff
