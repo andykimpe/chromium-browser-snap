@@ -148,6 +148,7 @@ parts:
       - libpci-dev
       - libssl-dev
       - libwayland-dev
+      - libsystemd-dev
       - libxshmfence-dev
       - libxss-dev
       - lsb-release
