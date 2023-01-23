@@ -113,8 +113,8 @@ fi
 # Add necessary flags for VAAPI video en/decoding
 CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder --disable-features=UseChromeOSDirectVideoDecoder --use-gl=egl --video-capture-use-external-dma-buffer'
 
-# With the patch for dynamic NV12 support detection, this should now be safe on non-Intel platforms.
-CHROMIUM_VAAPI_FLAGS="--video-capture-use-gpu-memory-buffer $CHROMIUM_VAAPI_FLAGS"
+# Still causes issues with PIXEL_FORMAT_NV12 on non-intel GPUs. We cannot enable this here.
+#CHROMIUM_VAAPI_FLAGS="--video-capture-use-gpu-memory-buffer $CHROMIUM_VAAPI_FLAGS"
 
 if [ -n "$WAYLAND_DISPLAY" ]; then
     CHROMIUM_VAAPI_FLAGS="--ozone-platform=wayland $CHROMIUM_VAAPI_FLAGS"
