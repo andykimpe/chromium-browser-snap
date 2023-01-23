@@ -48,7 +48,7 @@ Forwarded: not-needed
          DCHECK(!replacement.is_post_param);
 -        std::string client = search_terms_data.GetSearchClient();
 +        ubuntu_credit_for_search = true;
-+        std::string client = "ubuntu";
++        std::string client = "ubuntu_chr";
          if (!client.empty())
            HandleReplacement("client", client, replacement, &url);
          break;
@@ -59,7 +59,7 @@ Forwarded: not-needed
 +  /* Google search template from prefs might not have a client token. */
 +  if (is_google_search && !ubuntu_credit_for_search) {
 +    if (url.find_first_of('?', 8) != std::string::npos) {  // perhaps no GET params
-+      url.append("&client=ubuntu");
++      url.append("&client=ubuntu_chr");
 +    }
 +  }
 +
