@@ -1,17 +1,17 @@
-From af887ba502876aa590d1890b543ccebfa3db8566 Mon Sep 17 00:00:00 2001
+From fe38fdb19778e6e472a156c6aa63fe494e803f4d Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Thu, 19 Jan 2023 16:30:25 +0800
-Subject: [PATCH] Dynamic check NV12 format when enable the video capture use gpu memory ubffers
+Date: Thu, 02 Feb 2023 14:22:34 +0800
+Subject: [PATCH] Dynamic fallback to system memory when failed to allocate NV12 GPU memory buffer
 
 Bug: N/A
 Change-Id: I8ba75b3981ebb890662d2a3b3981c0578d0f6ec7
 ---
 
 diff --git a/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc b/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
-index 1899912..5a6a992 100644
+index 668fcf8..5aa1fa7c 100644
 --- a/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
 +++ b/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
-@@ -22,6 +22,10 @@
+@@ -21,6 +21,10 @@
  #include "ui/accelerated_widget_mac/window_resize_helper_mac.h"
  #endif
  
@@ -22,7 +22,7 @@ index 1899912..5a6a992 100644
  namespace content {
  namespace {
  
-@@ -53,6 +57,23 @@
+@@ -52,6 +56,23 @@
  #endif
  }
  
@@ -46,7 +46,7 @@ index 1899912..5a6a992 100644
  }  // namespace
  
  GpuMemoryBufferManagerSingleton::GpuMemoryBufferManagerSingleton(int client_id)
-@@ -80,6 +101,12 @@
+@@ -79,6 +100,12 @@
  }
  
  void GpuMemoryBufferManagerSingleton::OnGpuExtraInfoUpdate() {
@@ -75,10 +75,10 @@ index e8fa594..d1edbfea 100644
  
  }  // namespace gfx
 diff --git a/ui/gfx/mojom/BUILD.gn b/ui/gfx/mojom/BUILD.gn
-index 37b984d..4921b84 100644
+index 055d205..0fec929 100644
 --- a/ui/gfx/mojom/BUILD.gn
 +++ b/ui/gfx/mojom/BUILD.gn
-@@ -50,7 +50,9 @@
+@@ -49,7 +49,9 @@
    if (ozone_platform_x11) {
      enabled_features += [ "enable_x11_params" ]
    }
@@ -117,7 +117,7 @@ index 15c7340..9add661 100644
  }
  
 diff --git a/ui/gfx/mojom/gpu_extra_info_mojom_traits.h b/ui/gfx/mojom/gpu_extra_info_mojom_traits.h
-index 12b616f..7c908bf 100644
+index 12b616f..7c908bf0 100644
 --- a/ui/gfx/mojom/gpu_extra_info_mojom_traits.h
 +++ b/ui/gfx/mojom/gpu_extra_info_mojom_traits.h
 @@ -68,6 +68,12 @@
