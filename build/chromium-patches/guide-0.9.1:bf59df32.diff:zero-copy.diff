@@ -1,7 +1,7 @@
-From 9a7b0e11c9ff4c82154a68f4586996eeeedac66e Mon Sep 17 00:00:00 2001
+From bf59df329412ca720ab9799e2de3c82c0b48505f Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Fri, 18 Nov 2022 14:18:19 +0800
-Subject: [PATCH] Enable the zero-copy for hardware encoder
+Date: Thu, 02 Feb 2023 13:26:49 +0800
+Subject: [PATCH] Add the zero-copy for Linux* video capture
 
 Add the zero-copy supporting for video capture pipeline.
 
@@ -10,25 +10,25 @@ Change-Id: Ic9bd08a94b79731750529b35a99f700fcc815e6c
 ---
 
 diff --git a/media/capture/BUILD.gn b/media/capture/BUILD.gn
-index ecb0a2e..fb0bf74b 100644
+index 76c9384..752ffac 100644
 --- a/media/capture/BUILD.gn
 +++ b/media/capture/BUILD.gn
-@@ -280,6 +280,10 @@
+@@ -278,6 +278,10 @@
+     sources += [
+       "video/linux/v4l2_capture_delegate_gpu_helper.cc",
        "video/linux/v4l2_capture_delegate_gpu_helper.h",
-       "video/linux/v4l2_gpu_memory_buffer_tracker.cc",
-       "video/linux/v4l2_gpu_memory_buffer_tracker.h",
 +      "video/linux/v4l2_external_buffer_cache.cc",
 +      "video/linux/v4l2_external_buffer_cache.h",
 +      "video/linux/v4l2_external_buffer_tracker.cc",
 +      "video/linux/v4l2_external_buffer_tracker.h",
-     ]
-   }
- 
+       "video/linux/v4l2_gpu_memory_buffer_factory.cc",
+       "video/linux/v4l2_gpu_memory_buffer_factory.h",
+       "video/linux/v4l2_gpu_memory_buffer_tracker.cc",
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.cc b/media/capture/video/linux/v4l2_capture_delegate.cc
-index 9b8af33..792e402 100644
+index 2f90267..ba2bde4 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate.cc
-@@ -25,6 +25,7 @@
+@@ -26,6 +26,7 @@
  #include "media/capture/mojom/image_capture_types.h"
  #include "media/capture/video/blob_utils.h"
  #include "media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h"
@@ -36,7 +36,7 @@ index 9b8af33..792e402 100644
  #include "media/capture/video/linux/video_capture_device_linux.h"
  
  using media::mojom::MeteringMode;
-@@ -50,7 +51,7 @@
+@@ -51,7 +52,7 @@
  // buffers by v4l2 driver can be higher or lower than this number.
  // kNumVideoBuffers should not be too small, or Chrome may not return enough
  // buffers back to driver in time.
@@ -45,18 +45,19 @@ index 9b8af33..792e402 100644
  // Timeout in milliseconds v4l2_thread_ blocks waiting for a frame from the hw.
  // This value has been fine tuned. Before changing or modifying it see
  // https://crbug.com/470717
-@@ -63,6 +64,10 @@
+@@ -64,6 +65,11 @@
  // Typical framerate, in fps
  constexpr int kTypicalFramerate = 30;
  
 +// v4l2 loopback driver name
-+constexpr char kV4L2LoopbackDriver[] = {'v','4','l','2',' ','l','o','o','p','b','a','c','k'};
-+constexpr char kCardIntel[] = {'I','n','t','e','l'};
++constexpr char kV4L2LoopbackDriver[] = {'v', '4', 'l', '2', ' ', 'l', 'o',
++                                        'o', 'p', 'b', 'a', 'c', 'k'};
++constexpr char kCardIntel[] = {'I', 'n', 't', 'e', 'l'};
 +
  // V4L2 color formats supported by V4L2CaptureDelegate derived classes.
  // This list is ordered by precedence of use -- but see caveats for MJPEG.
  struct {
-@@ -184,6 +189,7 @@
+@@ -185,6 +191,7 @@
      DCHECK_LE(payload_size, length_);
      payload_size_ = payload_size;
    }
@@ -64,26 +65,22 @@ index 9b8af33..792e402 100644
  
   private:
    friend class base::RefCounted<BufferTracker>;
-@@ -249,9 +255,10 @@
+@@ -250,7 +257,8 @@
        is_capturing_(false),
        timeout_count_(0),
        rotation_(rotation),
 -      use_gpu_buffer_(switches::IsVideoCaptureUseGpuMemoryBufferEnabled()) {
--        v4l2_gpu_helper_ = std::make_unique<V4L2CaptureDelegateGpuHelper>(this);
--      }
 +      use_gpu_buffer_(switches::IsVideoCaptureUseGpuMemoryBufferEnabled()),
 +      use_external_dma_buf_(false) {
-+  v4l2_gpu_helper_ = std::make_unique<V4L2CaptureDelegateGpuHelper>(this);
-+}
- 
- void V4L2CaptureDelegate::AllocateAndStart(
-     int width,
-@@ -293,6 +300,17 @@
+   if (use_gpu_buffer_) {
+     v4l2_gpu_helper_ = std::make_unique<V4L2CaptureDelegateGpuHelper>(this);
+   }
+@@ -296,6 +304,17 @@
      return;
    }
  
 +  if (use_gpu_buffer_) {
-+    //dynamic check v4l2 loopback driver
++    // dynamic check v4l2 loopback driver
 +    use_external_dma_buf_ = false;
 +    if (0 == std::memcmp(cap.driver, kV4L2LoopbackDriver,
 +                         sizeof(kV4L2LoopbackDriver)) &&
@@ -96,7 +93,7 @@ index 9b8af33..792e402 100644
    // Get supported video formats in preferred order. For large resolutions,
    // favour mjpeg over raw formats.
    const std::vector<uint32_t>& desired_v4l2_formats =
-@@ -311,8 +329,8 @@
+@@ -314,8 +333,8 @@
    }
  
    DVLOG(1) << "Chosen pixel format is " << FourccToString(*best);
@@ -106,30 +103,32 @@ index 9b8af33..792e402 100644
    if (DoIoctl(VIDIOC_S_FMT, &video_fmt_) < 0) {
      SetErrorState(VideoCaptureError::kV4L2FailedToSetVideoCaptureFormat,
                    FROM_HERE, "Failed to set video capture format");
-@@ -384,6 +402,10 @@
+@@ -387,6 +406,11 @@
    TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("video_and_image_capture"),
                 "V4L2CaptureDelegate::StopAndDeAllocate");
    StopStream();
 +
-+  if (use_gpu_buffer_)
++  if (use_gpu_buffer_) {
 +    V4L2ExternalBufferCache::Instance()->Clean();
++  }
 +
    // At this point we can close the device.
    // This is also needed for correctly changing settings later via VIDIOC_S_FMT.
    device_fd_.reset();
-@@ -668,7 +690,10 @@
+@@ -671,7 +695,11 @@
    return weak_factory_.GetWeakPtr();
  }
  
 -V4L2CaptureDelegate::~V4L2CaptureDelegate() = default;
 +V4L2CaptureDelegate::~V4L2CaptureDelegate() {
-+  if (use_gpu_buffer_)
++  if (use_gpu_buffer_) {
 +    V4L2ExternalBufferCache::Instance()->Clean();
++  }
 +}
  
  bool V4L2CaptureDelegate::RunIoctl(int request, void* argp) {
    int num_retries = 0;
-@@ -910,7 +935,9 @@
+@@ -913,7 +941,9 @@
        return;
      }
  
@@ -140,7 +139,7 @@ index 9b8af33..792e402 100644
      const scoped_refptr<BufferTracker>& buffer_tracker =
          buffer_tracker_pool_[buffer.index];
  
-@@ -953,10 +980,9 @@
+@@ -956,10 +986,9 @@
        // transfer = v4l2_format->fmt.pix.xfer_func;
        // See http://crbug.com/959919.
        if (use_gpu_buffer_) {
@@ -154,7 +153,7 @@ index 9b8af33..792e402 100644
        } else {
          client_->OnIncomingCapturedData(
              buffer_tracker->start(), buffer_tracker->payload_size(),
-@@ -976,11 +1002,12 @@
+@@ -979,11 +1008,12 @@
        if (blob)
          std::move(cb).Run(std::move(blob));
      }
@@ -172,7 +171,7 @@ index 9b8af33..792e402 100644
      }
    }
  
-@@ -1024,14 +1051,51 @@
+@@ -1027,14 +1057,51 @@
    client_->OnError(error, from_here, reason);
  }
  
@@ -228,13 +227,14 @@ index 9b8af33..792e402 100644
  }
  
  bool V4L2CaptureDelegate::BufferTracker::Init(int fd,
-@@ -1051,4 +1115,12 @@
+@@ -1054,4 +1121,13 @@
    return true;
  }
  
 +void V4L2CaptureDelegate::BufferTracker::UnMap() {
-+  if (!start_)
++  if (!start_) {
 +    return;
++  }
 +  const int result = v4l2_->munmap(start_, length_);
 +  PLOG_IF(ERROR, result < 0) << "Error munmap()ing V4L2 buffer";
 +  start_ = nullptr;
@@ -242,7 +242,7 @@ index 9b8af33..792e402 100644
 +
  }  // namespace media
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.h b/media/capture/video/linux/v4l2_capture_delegate.h
-index 2a2d0a8..c29f6de8 100644
+index 9224502..f757a08 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.h
 +++ b/media/capture/video/linux/v4l2_capture_delegate.h
 @@ -113,6 +113,15 @@
@@ -262,7 +262,7 @@ index 2a2d0a8..c29f6de8 100644
    const scoped_refptr<base::SingleThreadTaskRunner> v4l2_task_runner_;
    const VideoCaptureDeviceDescriptor device_descriptor_;
 @@ -141,6 +150,7 @@
-   class  V4L2CaptureDelegateGpuHelper;
+   class V4L2CaptureDelegateGpuHelper;
    friend class V4L2CaptureDelegateGpuHelper;
    bool use_gpu_buffer_;
 +  bool use_external_dma_buf_;
@@ -270,22 +270,20 @@ index 2a2d0a8..c29f6de8 100644
  
    base::WeakPtrFactory<V4L2CaptureDelegate> weak_factory_{this};
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
-index de2519e..16f2fd3 100644
+index 9c0b407..3e2dd522 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
-@@ -4,9 +4,10 @@
+@@ -4,7 +4,9 @@
  
  #include "media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h"
  
 +#include "base/posix/eintr_wrapper.h"
+ #include "base/trace_event/trace_event.h"
 +#include "media/capture/video/linux/v4l2_external_buffer_cache.h"
  #include "third_party/libyuv/include/libyuv.h"
  #include "ui/gfx/gpu_memory_buffer.h"
--
- namespace media {
  
- namespace {
-@@ -120,6 +121,80 @@
+@@ -124,6 +126,85 @@
    return status;
  }
  
@@ -299,21 +297,25 @@ index de2519e..16f2fd3 100644
 +                                     base::TimeTicks reference_time,
 +                                     base::TimeDelta timestamp,
 +                                     int frame_feedback_id) {
++  TRACE_EVENT0(
++      TRACE_DISABLED_BY_DEFAULT("video_and_image_capture"),
++      "V4L2CaptureDelegateGpuHelper::OnIncomingCapturedExternalDmaBuf");
 +  if (!v4l2_delegate_ || !v4l2_delegate_->client_.get()) {
 +    return -1;
 +  }
 +  VideoCaptureDevice::Client* client = v4l2_delegate_->client_.get();
 +
-+  auto hadle_id = gfx::GpuMemoryBufferId(fd);
++  auto handle_id = gfx::GpuMemoryBufferId(fd);
 +  gfx::GpuMemoryBufferHandle handle =
-+      V4L2ExternalBufferCache::Instance()->Find(hadle_id);
++      V4L2ExternalBufferCache::Instance()->Find(handle_id);
++  int destination_width = format.frame_size.width() & ~1;
++  int destination_height = format.frame_size.height() & ~1;
 +  if (handle.is_null()) {
-+    int destination_width = format.frame_size.width() & ~1;
-+    int destination_height = format.frame_size.height() & ~1;
 +    const VideoPixelFormat pixel_format = VideoPixelFormat::PIXEL_FORMAT_NV12;
 +
-+    if (rotation == 90 || rotation == 270)
++    if (rotation == 90 || rotation == 270) {
 +      std::swap(destination_width, destination_height);
++    }
 +    const gfx::Size dimensions(destination_width, destination_height);
 +    const size_t num_planes = VideoFrame::NumPlanes(pixel_format);
 +    std::vector<base::ScopedFD> dmabuf_fds;
@@ -331,7 +333,7 @@ index de2519e..16f2fd3 100644
 +    handle.type = gfx::NATIVE_PIXMAP;
 +    handle.offset = 0;
 +    handle.stride = 0;
-+    handle.id = hadle_id;
++    handle.id = handle_id;
 +
 +    const int stride = dimensions.width();
 +    const int nv12_y_size =
@@ -359,7 +361,8 @@ index de2519e..16f2fd3 100644
 +
 +  client->OnIncomingCapturedExternalBuffer(
 +      std::move(buffer), std::vector<CapturedExternalVideoBuffer>(),
-+      reference_time, timestamp);
++      reference_time, timestamp,
++      gfx::Rect(destination_width, destination_height));
 +  return 0;
 +}
 +
@@ -367,24 +370,23 @@ index de2519e..16f2fd3 100644
      const uint8_t* sample,
      size_t sample_size,
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
-index 237fe321..90b24ee1 100644
+index 237fe321..bc473c1f 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
-@@ -34,7 +34,16 @@
-                              base::TimeTicks reference_time,
+@@ -35,6 +35,16 @@
                               base::TimeDelta timestamp,
                               int frame_feedback_id = 0);
--
-+            
+ 
 +  int OnIncomingCapturedExternalDmaBuf(__u32 index,
-+                                    int fd,
-+                                    const VideoCaptureFormat& format,
-+                                    const gfx::ColorSpace& data_color_space,
-+                                    int rotation,
-+                                    bool flip_y,
-+                                    base::TimeTicks reference_time,
-+                                    base::TimeDelta timestamp,
-+                                    int frame_feedback_id = 0);
++                                       int fd,
++                                       const VideoCaptureFormat& format,
++                                       const gfx::ColorSpace& data_color_space,
++                                       int rotation,
++                                       bool flip_y,
++                                       base::TimeTicks reference_time,
++                                       base::TimeDelta timestamp,
++                                       int frame_feedback_id = 0);
++
   private:
    int CovertCaptureDataToNV12(const uint8_t* sample,
                                size_t sample_size,

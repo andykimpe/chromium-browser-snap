@@ -1,6 +1,6 @@
-From 04db99d5224fbf19d671d09fa6a13fdb732f187d Mon Sep 17 00:00:00 2001
+From bb6aa4636c23e2e0625a3918ea14995f30aebf01 Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Fri, 22 Jul 2022 09:52:52 +0800
+Date: Thu, 02 Feb 2023 14:28:54 +0800
 Subject: [PATCH] Enable linux:unstable_deb build target when using the chromium minigbm
 
 Bug:N/A
@@ -8,7 +8,7 @@ Change-Id: Ied6a2d4a8aace6db581d97819e4ce7a346ebd93f
 ---
 
 diff --git a/third_party/minigbm/BUILD.gn b/third_party/minigbm/BUILD.gn
-index 554fd51..a350235c 100644
+index 739e278..50bf5d8 100644
 --- a/third_party/minigbm/BUILD.gn
 +++ b/third_party/minigbm/BUILD.gn
 @@ -58,7 +58,7 @@
@@ -20,7 +20,7 @@ index 554fd51..a350235c 100644
      sources = [
        "src/amdgpu.c",
        "src/dri.c",
-@@ -90,8 +90,8 @@
+@@ -89,8 +89,8 @@
      }
  
      # Clients need this to pick up the shared library correctly.
