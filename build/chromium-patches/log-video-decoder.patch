@@ -14,7 +14,7 @@ Forwarded: not-needed
  #include "base/notreached.h"
  
  namespace media {
-@@ -23,36 +23,52 @@
+@@ -23,34 +23,49 @@
  std::string GetDecoderName(VideoDecoderType type) {
    switch (type) {
      case VideoDecoderType::kUnknown:
@@ -44,9 +44,6 @@ Forwarded: not-needed
      case VideoDecoderType::kMediaCodec:
 +      LOG(INFO) << "MediaCodecVideoDecoder";
        return "MediaCodecVideoDecoder";
-     case VideoDecoderType::kGav1:
-+      LOG(INFO) << "Gav1VideoDecoder";
-       return "Gav1VideoDecoder";
      case VideoDecoderType::kD3D11:
 +      LOG(INFO) << "D3D11VideoDecoder";
        return "D3D11VideoDecoder";
