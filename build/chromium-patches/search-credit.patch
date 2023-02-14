@@ -1,5 +1,7 @@
-Description: Add Ubuntu id into search queries to get credit.
+Description: Add Ubuntu id into search queries and modify user agent to get
+ credit.
 Author: Chad Miller <chad.miller@canonical.com>
+Author: Nathan Pratta Teodosio <nathan.teodosio@canonical.com>
 Forwarded: not-needed
 
 --- a/components/search_engines/prepopulated_engines.json
@@ -66,3 +68,14 @@ Forwarded: not-needed
    if (!post_params_.empty())
      EncodeFormData(post_params_, post_content);
  
+--- a/content/common/user_agent.cc
++++ b/content/common/user_agent.cc
+@@ -64,7 +64,7 @@
+ #elif BUILDFLAG(IS_FUCHSIA)
+   return "Fuchsia";
+ #elif BUILDFLAG(IS_LINUX)
+-  return "X11; Linux x86_64";
++  return "X11; Ubuntu; Linux x86_64";
+ #else
+ #error Unsupported platform
+ #endif
