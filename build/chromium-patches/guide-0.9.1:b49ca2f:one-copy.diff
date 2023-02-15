@@ -1,0 +1,874 @@
+From b49ca2f0b9dca4ffc336c28afab9ddb01baefb83 Mon Sep 17 00:00:00 2001
+From: Yaowei Zhou <yaowei.zhou@intel.com>
+Date: Wed, 15 Feb 2023 12:34:25 +0800
+Subject: [PATCH] Add One-copy for Linux Video Capture
+
+Enable the gpu memory buffer with NV12 format of Linux camera capture path for local view and video encode.
+
+Design Doc: https://docs.google.com/document/d/1_9ABHX-effg5WD5sC3J1mDXiYaU4zZnf/edit
+
+Bug: 1374150
+Change-Id: I3afff1c45f47e7c7141bd4bdcdf1811ea0906349
+---
+
+diff --git a/content/browser/utility_process_host.cc b/content/browser/utility_process_host.cc
+index fe0b513..77cdee8 100644
+--- a/content/browser/utility_process_host.cc
++++ b/content/browser/utility_process_host.cc
+@@ -60,6 +60,11 @@
+ #include "media/capture/capture_switches.h"
+ #endif
+ 
++#if BUILDFLAG(IS_LINUX)
++#include "media/capture/capture_switches.h"
++#include "services/video_capture/public/mojom/video_capture_service.mojom.h"
++#endif
++
+ namespace content {
+ 
+ UtilityMainThreadFactoryFunction g_utility_main_thread_factory = nullptr;
+@@ -355,6 +360,17 @@
+     file_data_->files_to_preload.merge(GetV8SnapshotFilesToPreload());
+ #endif  // BUILDFLAG(IS_POSIX)
+ 
++#if BUILDFLAG(IS_LINUX)
++    if (metrics_name_ == video_capture::mojom::VideoCaptureService::Name_) {
++      if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
++              switches::kDisableVideoCaptureUseGpuMemoryBuffer) &&
++          base::CommandLine::ForCurrentProcess()->HasSwitch(
++              switches::kVideoCaptureUseGpuMemoryBuffer)) {
++        cmd_line->AppendSwitch(switches::kVideoCaptureUseGpuMemoryBuffer);
++      }
++    }
++#endif
++
+     std::unique_ptr<UtilitySandboxedProcessLauncherDelegate> delegate =
+         std::make_unique<UtilitySandboxedProcessLauncherDelegate>(
+             sandbox_type_, env_, *cmd_line);
+diff --git a/media/capture/BUILD.gn b/media/capture/BUILD.gn
+index 3e6bfcb..76c9384 100644
+--- a/media/capture/BUILD.gn
++++ b/media/capture/BUILD.gn
+@@ -274,6 +274,17 @@
+     ]
+   }
+ 
++  if (is_linux) {
++    sources += [
++      "video/linux/v4l2_capture_delegate_gpu_helper.cc",
++      "video/linux/v4l2_capture_delegate_gpu_helper.h",
++      "video/linux/v4l2_gpu_memory_buffer_factory.cc",
++      "video/linux/v4l2_gpu_memory_buffer_factory.h",
++      "video/linux/v4l2_gpu_memory_buffer_tracker.cc",
++      "video/linux/v4l2_gpu_memory_buffer_tracker.h",
++    ]
++  }
++
+   if (is_chromeos_ash) {
+     sources += [
+       "video/chromeos/camera_3a_controller.cc",
+diff --git a/media/capture/video/linux/v4l2_capture_delegate.cc b/media/capture/video/linux/v4l2_capture_delegate.cc
+index c447d607..a72e9e3 100644
+--- a/media/capture/video/linux/v4l2_capture_delegate.cc
++++ b/media/capture/video/linux/v4l2_capture_delegate.cc
+@@ -23,8 +23,10 @@
+ #include "media/base/bind_to_current_loop.h"
+ #include "media/base/video_frame.h"
+ #include "media/base/video_types.h"
++#include "media/capture/capture_switches.h"
+ #include "media/capture/mojom/image_capture_types.h"
+ #include "media/capture/video/blob_utils.h"
++#include "media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h"
+ #include "media/capture/video/linux/video_capture_device_linux.h"
+ 
+ using media::mojom::MeteringMode;
+@@ -248,7 +250,12 @@
+       device_fd_(v4l2),
+       is_capturing_(false),
+       timeout_count_(0),
+-      rotation_(rotation) {}
++      rotation_(rotation),
++      use_gpu_buffer_(switches::IsVideoCaptureUseGpuMemoryBufferEnabled()) {
++  if (use_gpu_buffer_) {
++    v4l2_gpu_helper_ = std::make_unique<V4L2CaptureDelegateGpuHelper>(this);
++  }
++}
+ 
+ void V4L2CaptureDelegate::AllocateAndStart(
+     int width,
+@@ -366,7 +373,6 @@
+                                      video_fmt_.fmt.pix.height);
+   capture_format_.frame_rate = frame_rate;
+   capture_format_.pixel_format = pixel_format;
+-
+   if (!StartStream())
+     return;
+ 
+@@ -950,10 +956,17 @@
+       // matrix = v4l2_format->fmt.pix.ycbcr_enc;
+       // transfer = v4l2_format->fmt.pix.xfer_func;
+       // See http://crbug.com/959919.
+-      client_->OnIncomingCapturedData(
+-          buffer_tracker->start(), buffer_tracker->payload_size(),
+-          capture_format_, gfx::ColorSpace(), rotation_, false /* flip_y */,
+-          now, timestamp);
++      if (use_gpu_buffer_) {
++        v4l2_gpu_helper_->OnIncomingCapturedData(
++            buffer_tracker->start(), buffer_tracker->payload_size(),
++            capture_format_, gfx::ColorSpace(), rotation_, false /* flip_y */,
++            now, timestamp);
++      } else {
++        client_->OnIncomingCapturedData(
++            buffer_tracker->start(), buffer_tracker->payload_size(),
++            capture_format_, gfx::ColorSpace(), rotation_, false /* flip_y */,
++            now, timestamp);
++      }
+     }
+ 
+     while (!take_photo_callbacks_.empty()) {
+diff --git a/media/capture/video/linux/v4l2_capture_delegate.h b/media/capture/video/linux/v4l2_capture_delegate.h
+index a237df51..f3cb693 100644
+--- a/media/capture/video/linux/v4l2_capture_delegate.h
++++ b/media/capture/video/linux/v4l2_capture_delegate.h
+@@ -138,6 +138,12 @@
+   // Clockwise rotation in degrees. This value should be 0, 90, 180, or 270.
+   int rotation_;
+ 
++  // support gpu buffer
++  class V4L2CaptureDelegateGpuHelper;
++  friend class V4L2CaptureDelegateGpuHelper;
++  bool use_gpu_buffer_;
++  std::unique_ptr<V4L2CaptureDelegateGpuHelper> v4l2_gpu_helper_;
++
+   base::WeakPtrFactory<V4L2CaptureDelegate> weak_factory_{this};
+ };
+ 
+diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
+new file mode 100644
+index 0000000..9c0b407
+--- /dev/null
++++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
+@@ -0,0 +1,276 @@
++// Copyright 2022 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h"
++
++#include "base/trace_event/trace_event.h"
++#include "third_party/libyuv/include/libyuv.h"
++#include "ui/gfx/gpu_memory_buffer.h"
++
++namespace media {
++
++namespace {
++constexpr media::VideoPixelFormat TARGET_PIXEL_FORMAT =
++    media::VideoPixelFormat::PIXEL_FORMAT_NV12;
++constexpr gfx::BufferFormat TARGET_BUFFER_FORMAT =
++    gfx::BufferFormat::YUV_420_BIPLANAR;
++}  // namespace
++
++libyuv::FourCC ViedoCaptureFormatToLibyuvFourcc(
++    const VideoCaptureFormat& capture_format) {
++  const int chopped_width = capture_format.frame_size.width() & 1;
++  const int chopped_height = capture_format.frame_size.height() & 1;
++
++  switch (capture_format.pixel_format) {
++    case PIXEL_FORMAT_NV12:
++      DCHECK(!chopped_width && !chopped_height);
++      return libyuv::FOURCC_NV12;
++    case PIXEL_FORMAT_YUY2:
++      DCHECK(!chopped_width && !chopped_height);
++      return libyuv::FOURCC_YUY2;
++    case PIXEL_FORMAT_MJPEG:
++      return libyuv::FOURCC_MJPG;
++    default:
++      NOTREACHED();
++  }
++  return libyuv::FOURCC_ANY;
++}
++
++libyuv::RotationMode TranslateRotation(int rotation_degrees) {
++  DCHECK_EQ(0, rotation_degrees % 90) << " Rotation must be a multiple of 90, "
++                                         "now: "
++                                      << rotation_degrees;
++  libyuv::RotationMode rotation_mode = libyuv::kRotate0;
++  if (rotation_degrees == 90) {
++    rotation_mode = libyuv::kRotate90;
++  } else if (rotation_degrees == 180) {
++    rotation_mode = libyuv::kRotate180;
++  } else if (rotation_degrees == 270) {
++    rotation_mode = libyuv::kRotate270;
++  }
++  return rotation_mode;
++}
++
++V4L2CaptureDelegate::V4L2CaptureDelegateGpuHelper::V4L2CaptureDelegateGpuHelper(
++    V4L2CaptureDelegate* v4l2_capture_delegate)
++    : v4l2_delegate_(v4l2_capture_delegate) {}
++
++V4L2CaptureDelegate ::V4L2CaptureDelegateGpuHelper::
++    ~V4L2CaptureDelegateGpuHelper() = default;
++
++int V4L2CaptureDelegate::V4L2CaptureDelegateGpuHelper::OnIncomingCapturedData(
++    const uint8_t* sample,
++    size_t sample_size,
++    const VideoCaptureFormat& capture_format,
++    const gfx::ColorSpace& data_color_space,
++    int rotation,
++    bool flip_y,
++    base::TimeTicks reference_time,
++    base::TimeDelta timestamp,
++    int frame_feedback_id) {
++  TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("video_and_image_capture"),
++               "V4L2CaptureDelegateGpuHelper::OnIncomingCapturedData");
++  if (!v4l2_delegate_ || !v4l2_delegate_->client_.get()) {
++    return -1;
++  }
++  VideoCaptureDevice::Client* client = v4l2_delegate_->client_.get();
++
++  int dst_width = capture_format.frame_size.width() & ~1;
++  int dst_height = capture_format.frame_size.height() & ~1;
++  if (rotation == 90 || rotation == 270) {
++    std::swap(dst_width, dst_height);
++  }
++  const gfx::Size dimensions(dst_width, dst_height);
++
++  VideoCaptureDevice::Client::Buffer capture_buffer;
++  auto reservation_result_code = client->ReserveOutputBuffer(
++      dimensions, TARGET_PIXEL_FORMAT, frame_feedback_id, &capture_buffer);
++  if (reservation_result_code !=
++      VideoCaptureDevice::Client::ReserveResult::kSucceeded) {
++    DLOG(ERROR) << "Failed to reserve output capture buffer: "
++                << (int)reservation_result_code;
++    client->OnFrameDropped(
++        ConvertReservationFailureToFrameDropReason(reservation_result_code));
++    return -1;
++  }
++
++  std::unique_ptr<gfx::GpuMemoryBuffer> client_gpu_memory_buff =
++      gmb_support_.CreateGpuMemoryBufferImplFromHandle(
++          capture_buffer.handle_provider->GetGpuMemoryBufferHandle(),
++          dimensions, TARGET_BUFFER_FORMAT,
++          gfx::BufferUsage::GPU_READ_CPU_READ_WRITE, base::NullCallback());
++  if (!client_gpu_memory_buff) {
++    DLOG(ERROR) << "Failed to allocate gpu memory buffer buffer";
++    client->OnFrameDropped(ConvertReservationFailureToFrameDropReason(
++        VideoCaptureDevice::Client::ReserveResult::kAllocationFailed));
++    return -1;
++  }
++  int status = CovertCaptureDataToNV12(sample, sample_size, capture_format,
++                                       dimensions, data_color_space, rotation,
++                                       flip_y, client_gpu_memory_buff);
++  if (status != 0) {
++    DLOG(ERROR) << "Failed to convert data";
++    client->OnFrameDropped(ConvertReservationFailureToFrameDropReason(
++        VideoCaptureDevice::Client::ReserveResult::kSucceeded));
++    return -1;
++  }
++  client->OnIncomingCapturedBufferExt(
++      std::move(capture_buffer),
++      VideoCaptureFormat(dimensions, capture_format.frame_rate,
++                         TARGET_PIXEL_FORMAT),
++      gfx::ColorSpace(), reference_time, timestamp, gfx::Rect(dimensions),
++      VideoFrameMetadata());
++  return status;
++}
++
++int V4L2CaptureDelegate::V4L2CaptureDelegateGpuHelper::CovertCaptureDataToNV12(
++    const uint8_t* sample,
++    size_t sample_size,
++    const VideoCaptureFormat& capture_format,
++    const gfx::Size& dimensions,
++    const gfx::ColorSpace& data_color_space,
++    int rotation,
++    bool flip_y,
++    std::unique_ptr<gfx::GpuMemoryBuffer>& client_gpu_memory_buff) {
++  const libyuv::FourCC fourcc =
++      ViedoCaptureFormatToLibyuvFourcc(capture_format);
++
++  const int crop_x = 0;
++  const int crop_y = 0;
++  const int src_width = capture_format.frame_size.width();
++  const int src_height = capture_format.frame_size.height();
++  const int crop_width = capture_format.frame_size.width() & ~1;
++  const int crop_height = capture_format.frame_size.height() & ~1;
++  int status = -1;
++
++  if (client_gpu_memory_buff && client_gpu_memory_buff->Map()) {
++    uint8_t* nv12_y_plane =
++        (uint8_t*)client_gpu_memory_buff->memory(VideoFrame::kYPlane);
++    uint8_t* nv12_uv_plane =
++        (uint8_t*)client_gpu_memory_buff->memory(VideoFrame::kUVPlane);
++    int nv12_y_stride = client_gpu_memory_buff->stride(VideoFrame::kYPlane);
++    int nv12_uv_stride = client_gpu_memory_buff->stride(VideoFrame::kUVPlane);
++    libyuv::RotationMode rotation_mode = TranslateRotation(rotation);
++    uint32_t format = libyuv::CanonicalFourCC(fourcc);
++    if (rotation_mode == libyuv::RotationMode::kRotate0 &&
++        IsNV12ConvertSupported(format)) {
++      std::vector<int32_t> strides = VideoFrame::ComputeStrides(
++          VideoPixelFormat::PIXEL_FORMAT_I420, dimensions);
++      status = FastCovertToNV12(sample, sample_size, crop_x, crop_y, src_width,
++                                src_height, crop_width, crop_height, format,
++                                nv12_y_plane, nv12_y_stride, nv12_uv_plane,
++                                nv12_uv_stride);
++    } else {
++      const size_t i420_size = VideoFrame::AllocationSize(
++          VideoPixelFormat::PIXEL_FORMAT_I420, dimensions);
++
++      i420_buffer_.reserve(i420_size);
++      if (i420_buffer_.data()) {
++        uint8_t* i420_y_plane = i420_buffer_.data();
++        uint8_t* i420_u_plane =
++            i420_y_plane +
++            VideoFrame::PlaneSize(VideoPixelFormat::PIXEL_FORMAT_I420,
++                                  VideoFrame::kYPlane, dimensions)
++                .GetArea();
++        uint8_t* i420_v_plane =
++            i420_u_plane +
++            VideoFrame::PlaneSize(VideoPixelFormat::PIXEL_FORMAT_I420,
++                                  VideoFrame::kUPlane, dimensions)
++                .GetArea();
++        std::vector<int32_t> strides = VideoFrame::ComputeStrides(
++            VideoPixelFormat::PIXEL_FORMAT_I420, dimensions);
++        const int i420_y_stride = strides[VideoFrame::kYPlane];
++        const int i420_u_stride = strides[VideoFrame::kUPlane];
++        const int i420_v_stride = strides[VideoFrame::kVPlane];
++
++        status = libyuv::ConvertToI420(
++            sample, sample_size, i420_y_plane, i420_y_stride, i420_u_plane,
++            i420_u_stride, i420_v_plane, i420_v_stride, crop_x, crop_y,
++            src_width, src_height, crop_width, crop_height, rotation_mode,
++            fourcc);
++
++        if (!status) {
++          status = libyuv::I420ToNV12(
++              i420_y_plane, i420_y_stride, i420_u_plane, i420_u_stride,
++              i420_v_plane, i420_v_stride, nv12_y_plane, nv12_y_stride,
++              nv12_uv_plane, nv12_uv_stride, src_width, src_height);
++        }
++      }
++    }
++    client_gpu_memory_buff->Unmap();
++  } else {
++    DLOG(ERROR) << "Invalid gpu memory buffer";
++  }
++
++  return status;
++}
++
++int V4L2CaptureDelegate::V4L2CaptureDelegateGpuHelper::FastCovertToNV12(
++    const uint8_t* sample,
++    size_t sample_size,
++    int crop_x,
++    int crop_y,
++    int src_width,
++    int src_height,
++    int crop_width,
++    int crop_height,
++    uint32_t format,
++    uint8_t* dst_y,
++    int dst_stride_y,
++    uint8_t* dst_uv,
++    int dst_stride_uv) {
++  int aligned_src_width = (src_width + 1) & ~1;
++  const uint8_t* src = nullptr;
++  const uint8_t* src_uv = nullptr;
++  const int abs_src_height = (src_height < 0) ? -src_height : src_height;
++  // TODO(nisse): Why allow crop_height < 0?
++  const int abs_crop_height = (crop_height < 0) ? -crop_height : crop_height;
++  int status = 0;
++  const int inv_crop_height =
++      (src_height < 0) ? -abs_crop_height : abs_crop_height;
++  if (!dst_y || !dst_uv || !sample || src_width <= 0 || crop_width <= 0 ||
++      src_height == 0 || crop_height == 0) {
++    return -1;
++  }
++
++  switch (format) {
++    case libyuv::FOURCC_YUY2:
++      src = sample + (aligned_src_width * crop_y + crop_x) * 2;
++      status = libyuv::YUY2ToNV12(src, aligned_src_width * 2, dst_y,
++                                  dst_stride_y, dst_uv, dst_stride_uv,
++                                  crop_width, inv_crop_height);
++      break;
++    case libyuv::FOURCC_MJPG:
++      status = libyuv::MJPGToNV12(sample, sample_size, dst_y, dst_stride_y,
++                                  dst_uv, dst_stride_uv, src_width,
++                                  abs_src_height, crop_width, inv_crop_height);
++      break;
++    case libyuv::FOURCC_NV12:
++      src = sample + (src_width * crop_y + crop_x);
++      src_uv = sample + (src_width * abs_src_height) +
++               ((crop_y / 2) * aligned_src_width) + ((crop_x / 2) * 2);
++      status = libyuv::NV12Copy(src, src_width, src_uv, aligned_src_width,
++                                dst_y, dst_stride_y, dst_uv, dst_stride_uv,
++                                crop_width, inv_crop_height);
++      break;
++    default:
++      status = -1;  // other fourcc - return failure code.
++  }
++
++  return status;
++}
++
++bool V4L2CaptureDelegate::V4L2CaptureDelegateGpuHelper::IsNV12ConvertSupported(
++    uint32_t fourcc) {
++  switch (fourcc) {
++    case libyuv::FOURCC_NV12:
++    case libyuv::FOURCC_YUY2:
++    case libyuv::FOURCC_MJPG:
++      return true;
++    default:
++      return false;
++  }
++}
++
++}  // namespace media
+\ No newline at end of file
+diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
+new file mode 100644
+index 0000000..237fe321
+--- /dev/null
++++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
+@@ -0,0 +1,72 @@
++// Copyright 2022 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef MEDIA_CAPTURE_VIDEO_LINUX_V4L2_CAPTURE_DELEGATE_GPU_HELPER_H_
++#define MEDIA_CAPTURE_VIDEO_LINUX_V4L2_CAPTURE_DELEGATE_GPU_HELPER_H_
++
++#include <vector>
++
++#include "gpu/ipc/common/gpu_memory_buffer_support.h"
++#include "media/capture/video/linux/v4l2_capture_delegate.h"
++#include "media/capture/video/video_capture_device.h"
++
++namespace media {
++
++class V4L2CaptureDelegate ::V4L2CaptureDelegateGpuHelper {
++ public:
++  explicit V4L2CaptureDelegateGpuHelper(
++      V4L2CaptureDelegate* v4l2_capture_delegate);
++
++  V4L2CaptureDelegateGpuHelper(const V4L2CaptureDelegateGpuHelper&) = delete;
++  V4L2CaptureDelegateGpuHelper& operator=(const V4L2CaptureDelegateGpuHelper&) =
++      delete;
++
++  ~V4L2CaptureDelegateGpuHelper();
++
++ public:
++  int OnIncomingCapturedData(const uint8_t* sample,
++                             size_t sample_size,
++                             const VideoCaptureFormat& format,
++                             const gfx::ColorSpace& data_color_space,
++                             int rotation,
++                             bool flip_y,
++                             base::TimeTicks reference_time,
++                             base::TimeDelta timestamp,
++                             int frame_feedback_id = 0);
++
++ private:
++  int CovertCaptureDataToNV12(const uint8_t* sample,
++                              size_t sample_size,
++                              const VideoCaptureFormat& format,
++                              const gfx::Size& dimensions,
++                              const gfx::ColorSpace& data_color_space,
++                              int rotation,
++                              bool flip_y,
++                              std::unique_ptr<gfx::GpuMemoryBuffer>& gmb);
++
++  int FastCovertToNV12(const uint8_t* sample,
++                       size_t sample_size,
++                       int crop_x,
++                       int crop_y,
++                       int src_width,
++                       int src_height,
++                       int crop_width,
++                       int crop_height,
++                       uint32_t fourcc,
++                       uint8_t* dst_y,
++                       int dst_stride_y,
++                       uint8_t* dst_uv,
++                       int dst_stride_uv);
++
++  bool IsNV12ConvertSupported(uint32_t fourcc);
++
++ private:
++  V4L2CaptureDelegate* v4l2_delegate_;
++  gpu::GpuMemoryBufferSupport gmb_support_;
++  std::vector<uint8_t> i420_buffer_;
++};
++
++}  // namespace media
++
++#endif  // !MEDIA_CAPTURE_VIDEO_LINUX_V4L2_CAPTURE_DELEGATE_GPU_HELPER_H_
+\ No newline at end of file
+diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc
+new file mode 100644
+index 0000000..0ffe633
+--- /dev/null
++++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc
+@@ -0,0 +1,59 @@
++// Copyright 2022 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h"
++#include "ui/gfx/client_native_pixmap_factory.h"
++#include "ui/gfx/native_pixmap.h"
++#include "ui/ozone/public/ozone_platform.h"
++
++namespace media {
++
++namespace {
++constexpr int CAPTURE_BASE_ID = 0x12345678;
++}
++
++int V4L2GpuMemoryBufferFactory::factory_id_ = 0;
++
++V4L2GpuMemoryBufferFactory::V4L2GpuMemoryBufferFactory() : buffer_id_(0) {
++  gmb_factory_ = gpu::GpuMemoryBufferFactory::CreateNativeType(nullptr);
++  client_id_ = CAPTURE_BASE_ID + factory_id_++;
++
++  ui::OzonePlatform::InitParams params;
++  params.single_process = true;
++  ui::OzonePlatform::InitializeForCapture(params);
++}
++
++V4L2GpuMemoryBufferFactory::~V4L2GpuMemoryBufferFactory() = default;
++
++std::unique_ptr<gfx::GpuMemoryBuffer>
++V4L2GpuMemoryBufferFactory::CreateGpuMemoryBuffer(const gfx::Size& size,
++                                                  gfx::BufferFormat format) {
++  gfx::BufferUsage usage = GetBufferUsage(format);
++  gfx::GpuMemoryBufferHandle handle = gmb_factory_->CreateGpuMemoryBuffer(
++      gfx::GpuMemoryBufferId(buffer_id_++), size, size, format, usage,
++      client_id_, gpu::kNullSurfaceHandle);
++
++  if (!handle.is_null()) {
++    std::unique_ptr<gfx::GpuMemoryBuffer> out_gpu_memory_buffer =
++        gmb_support_.CreateGpuMemoryBufferImplFromHandle(
++            std::move(handle), size, format, usage, base::NullCallback());
++
++    return out_gpu_memory_buffer;
++  }
++  return nullptr;
++}
++
++// static
++gfx::BufferUsage V4L2GpuMemoryBufferFactory::GetBufferUsage(
++    gfx::BufferFormat format) {
++  switch (format) {
++    case gfx::BufferFormat::YUV_420_BIPLANAR:
++      return gfx::BufferUsage::GPU_READ_CPU_READ_WRITE;
++    default:
++      // Default usage for YUV camera buffer.
++      return gfx::BufferUsage::SCANOUT_CPU_READ_WRITE;
++  }
++}
++
++}  // namespace media
+diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h
+new file mode 100644
+index 0000000..9fd596b
+--- /dev/null
++++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h
+@@ -0,0 +1,41 @@
++// Copyright 2022 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_FACTORY_H_
++#define MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_FACTORY_H_
++
++#include <memory>
++#include <unordered_map>
++
++#include "gpu/ipc/common/gpu_memory_buffer_support.h"
++#include "gpu/ipc/service/gpu_memory_buffer_factory.h"
++#include "media/capture/video_capture_types.h"
++#include "ui/gfx/buffer_types.h"
++#include "ui/gfx/gpu_memory_buffer.h"
++
++namespace media {
++
++class CAPTURE_EXPORT V4L2GpuMemoryBufferFactory {
++ public:
++  explicit V4L2GpuMemoryBufferFactory();
++
++  ~V4L2GpuMemoryBufferFactory();
++
++  virtual std::unique_ptr<gfx::GpuMemoryBuffer> CreateGpuMemoryBuffer(
++      const gfx::Size& size,
++      gfx::BufferFormat format);
++
++  static gfx::BufferUsage GetBufferUsage(gfx::BufferFormat format);
++
++ private:
++  std::unique_ptr<gpu::GpuMemoryBufferFactory> gmb_factory_;
++  gpu::GpuMemoryBufferSupport gmb_support_;
++  int buffer_id_ = -1;
++  int client_id_ = -1;
++  static int factory_id_;
++};
++
++}  // namespace media
++
++#endif  // MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_FACTORY_H_
+diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.cc b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.cc
+new file mode 100644
+index 0000000..135c775
+--- /dev/null
++++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.cc
+@@ -0,0 +1,91 @@
++// Copyright 2022 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h"
++#include "media/capture/video/video_capture_buffer_handle.h"
++#include "third_party/abseil-cpp/absl/types/optional.h"
++#include "ui/gfx/geometry/size.h"
++
++namespace media {
++
++// Converts the video pixel format |pixel_format| to gfx::BufferFormat.
++absl::optional<gfx::BufferFormat> PixFormatVideoToGfx(
++    VideoPixelFormat pixel_format) {
++  switch (pixel_format) {
++    case PIXEL_FORMAT_NV12:
++      return gfx::BufferFormat::YUV_420_BIPLANAR;
++    default:
++      return absl::nullopt;
++  }
++}
++
++V4L2GpuMemoryBufferTracker::V4L2GpuMemoryBufferTracker() = default;
++
++V4L2GpuMemoryBufferTracker::~V4L2GpuMemoryBufferTracker() = default;
++
++bool V4L2GpuMemoryBufferTracker::Init(const gfx::Size& dimensions,
++                                      VideoPixelFormat format,
++                                      const mojom::PlaneStridesPtr& strides) {
++  absl::optional<gfx::BufferFormat> gfx_format = PixFormatVideoToGfx(format);
++  if (!gfx_format) {
++    NOTREACHED() << "Unsupported VideoPixelFormat "
++                 << VideoPixelFormatToString(format);
++    return false;
++  }
++  buffer_ = buffer_factory_.CreateGpuMemoryBuffer(dimensions, *gfx_format);
++  if (!buffer_) {
++    NOTREACHED() << "Failed to create GPU memory buffer";
++    return false;
++  }
++  return true;
++}
++
++bool V4L2GpuMemoryBufferTracker::IsReusableForFormat(
++    const gfx::Size& dimensions,
++    VideoPixelFormat format,
++    const mojom::PlaneStridesPtr& strides) {
++  absl::optional<gfx::BufferFormat> gfx_format = PixFormatVideoToGfx(format);
++  if (!gfx_format) {
++    return false;
++  }
++  return (*gfx_format == buffer_->GetFormat() &&
++          dimensions == buffer_->GetSize());
++}
++
++std::unique_ptr<VideoCaptureBufferHandle>
++V4L2GpuMemoryBufferTracker::GetMemoryMappedAccess() {
++  NOTREACHED() << "Unsupported operation";
++  return std::make_unique<NullHandle>();
++}
++
++base::UnsafeSharedMemoryRegion
++V4L2GpuMemoryBufferTracker::DuplicateAsUnsafeRegion() {
++  NOTREACHED() << "Unsupported operation";
++  return base::UnsafeSharedMemoryRegion();
++}
++
++mojo::ScopedSharedBufferHandle
++V4L2GpuMemoryBufferTracker::DuplicateAsMojoBuffer() {
++  NOTREACHED() << "Unsupported operation";
++  return mojo::ScopedSharedBufferHandle();
++}
++
++gfx::GpuMemoryBufferHandle
++V4L2GpuMemoryBufferTracker::GetGpuMemoryBufferHandle() {
++  DCHECK(buffer_);
++  return buffer_->CloneHandle();
++}
++
++uint32_t V4L2GpuMemoryBufferTracker::GetMemorySizeInBytes() {
++  DCHECK(buffer_);
++  switch (buffer_->GetFormat()) {
++    case gfx::BufferFormat::YUV_420_BIPLANAR:
++      return buffer_->GetSize().width() * buffer_->GetSize().height() * 3 / 2;
++    default:
++      NOTREACHED() << "Unsupported gfx buffer format";
++      return buffer_->GetSize().width() * buffer_->GetSize().height();
++  }
++}
++
++}  // namespace media
+diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h
+new file mode 100644
+index 0000000..c928be21
+--- /dev/null
++++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h
+@@ -0,0 +1,41 @@
++// Copyright 2022 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_TRACKER_H_
++#define MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_TRACKER_H_
++
++#include "media/capture/capture_export.h"
++#include "media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h"
++#include "media/capture/video/video_capture_buffer_tracker.h"
++
++namespace media {
++
++// Tracker specifics for Linux GpuMemoryBuffer.
++class CAPTURE_EXPORT V4L2GpuMemoryBufferTracker final
++    : public VideoCaptureBufferTracker {
++ public:
++  V4L2GpuMemoryBufferTracker();
++  ~V4L2GpuMemoryBufferTracker() override;
++
++  // Implementation of VideoCaptureBufferTracker:
++  bool Init(const gfx::Size& dimensions,
++            VideoPixelFormat format,
++            const mojom::PlaneStridesPtr& strides) override;
++  bool IsReusableForFormat(const gfx::Size& dimensions,
++                           VideoPixelFormat format,
++                           const mojom::PlaneStridesPtr& strides) override;
++  uint32_t GetMemorySizeInBytes() override;
++  std::unique_ptr<VideoCaptureBufferHandle> GetMemoryMappedAccess() override;
++  base::UnsafeSharedMemoryRegion DuplicateAsUnsafeRegion() override;
++  mojo::ScopedSharedBufferHandle DuplicateAsMojoBuffer() override;
++  gfx::GpuMemoryBufferHandle GetGpuMemoryBufferHandle() override;
++
++ private:
++  V4L2GpuMemoryBufferFactory buffer_factory_;
++  std::unique_ptr<gfx::GpuMemoryBuffer> buffer_;
++};
++
++}  // namespace media
++
++#endif  // MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_TRACKER_H_
+\ No newline at end of file
+diff --git a/media/capture/video/video_capture_buffer_pool_util.cc b/media/capture/video/video_capture_buffer_pool_util.cc
+index 0af0a15..5556af33 100644
+--- a/media/capture/video/video_capture_buffer_pool_util.cc
++++ b/media/capture/video/video_capture_buffer_pool_util.cc
+@@ -49,6 +49,10 @@
+   if (switches::IsVideoCaptureUseGpuMemoryBufferEnabled()) {
+     max_buffer_count = 30;
+   }
++#elif BUILDFLAG(IS_LINUX)
++  if (switches::IsVideoCaptureUseGpuMemoryBufferEnabled()) {
++    max_buffer_count = 30;
++  }
+ #endif
+ 
+   return max_buffer_count;
+diff --git a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
+index 1756e1d..331336d 100644
+--- a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
++++ b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
+@@ -18,6 +18,10 @@
+ #include "media/capture/video/mac/gpu_memory_buffer_tracker_mac.h"
+ #endif
+ 
++#if BUILDFLAG(IS_LINUX)
++#include "media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h"
++#endif
++
+ namespace media {
+ 
+ std::unique_ptr<VideoCaptureBufferTracker>
+@@ -29,6 +33,8 @@
+       return std::make_unique<GpuMemoryBufferTracker>();
+ #elif BUILDFLAG(IS_MAC)
+       return std::make_unique<GpuMemoryBufferTrackerMac>();
++#elif BUILDFLAG(IS_LINUX)
++      return std::make_unique<V4L2GpuMemoryBufferTracker>();
+ #else
+       return nullptr;
+ #endif
+diff --git a/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc b/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
+index cb0e699..57b8207 100644
+--- a/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
++++ b/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
+@@ -534,6 +534,7 @@
+   } else {
+     planes.push_back(gfx::BufferPlane::DEFAULT);
+   }
++
+   for (size_t plane = 0; plane < planes.size(); ++plane) {
+     if (should_recreate_shared_image ||
+         buffer_context_->gmb_resources()->mailboxes[plane].IsZero()) {
+@@ -551,8 +552,15 @@
+   }
+ 
+   const unsigned texture_target =
+-      buffer_context_->gpu_factories()->ImageTextureTarget(
+-          gpu_memory_buffer_->GetFormat());
++#if BUILDFLAG(IS_LINUX)
++      // Explicitly set GL_TEXTURE_EXTERNAL_OES since ImageTextureTarget() will
++      // return GL_TEXTURE_2D due to GMB factory not supporting NV12 GMBs.
++      (frame_info_->pixel_format == media::PIXEL_FORMAT_NV12)
++          ? GL_TEXTURE_EXTERNAL_OES
++          :
++#endif
++          buffer_context_->gpu_factories()->ImageTextureTarget(
++              gpu_memory_buffer_->GetFormat());
+ 
+   const gpu::SyncToken sync_token = sii->GenVerifiedSyncToken();
+ 
+diff --git a/ui/ozone/public/ozone_platform.cc b/ui/ozone/public/ozone_platform.cc
+index 0243f94..50347f0f 100644
+--- a/ui/ozone/public/ozone_platform.cc
++++ b/ui/ozone/public/ozone_platform.cc
+@@ -91,6 +91,19 @@
+   g_instance->InitializeGPU(args);
+ }
+ 
++#if BUILDFLAG(IS_LINUX)
++// static
++void OzonePlatform::InitializeForCapture(const InitParams& args) {
++  EnsureInstance();
++  if (g_instance->initialized_gpu_) {
++    return;
++  }
++  g_instance->initialized_gpu_ = true;
++  g_instance->single_process_ = args.single_process;
++  g_instance->InitializeGPU(args);
++}
++#endif
++
+ // static
+ OzonePlatform* OzonePlatform::GetInstance() {
+   DCHECK(g_instance) << "OzonePlatform is not initialized";
+diff --git a/ui/ozone/public/ozone_platform.h b/ui/ozone/public/ozone_platform.h
+index ecfc348..2035034 100644
+--- a/ui/ozone/public/ozone_platform.h
++++ b/ui/ozone/public/ozone_platform.h
+@@ -245,6 +245,12 @@
+   // provided by |args| as with InitalizeForUI.
+   static void InitializeForGPU(const InitParams& args);
+ 
++#if BUILDFLAG(IS_LINUX)
++  // Initializes the subsystems for rendering but with additional properties
++  // provided by |args| as with InitializeForGPU.
++  static void InitializeForCapture(const InitParams& args);
++#endif
++
+   static OzonePlatform* GetInstance();
+ 
+   static bool IsInitialized();
