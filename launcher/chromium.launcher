@@ -159,7 +159,7 @@ if [ "$daemon" = "true" ]; then
     # If we're running as a kiosk, we are using Frame, so use Wayland.
     CHROMIUM_FLAGS="$CHROMIUM_FLAGS --enable-features=UseOzonePlatform --ozone-platform=wayland"
     # If we're running as a kiosk, we are loading a specific URL.
-    CHROMIUM_FLAGS="$CHROMIUM_FLAGS $(snapctl get url)"
+    set -- "$@" "$(snapctl get url)"
 fi
 
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
