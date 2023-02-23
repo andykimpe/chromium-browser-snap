@@ -25,6 +25,7 @@ apps:
       SPA_PLUGIN_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/spa-0.2
       PIPEWIRE_CONFIG_NAME: $SNAP/usr/share/pipewire/pipewire.conf
       PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pipewire-0.3
+      MINIGBM_DEBUG: 1
     plugs:
       - audio-playback
       - audio-record

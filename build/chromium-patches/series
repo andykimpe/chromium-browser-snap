@@ -1,3 +1,4 @@
+extra:fix-dri-loading.diff
 extra:fe38fdb:dynamic-check-nv12.diff
 guide-0.9.1:a45401f:vaapi-flag-ozone-wayland.diff
 guide-0.9.1:a49acb3:one-copy.diff
