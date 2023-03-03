@@ -1,9 +1,9 @@
 extra:fix-dri-loading.diff
 extra:fe38fdb:dynamic-check-nv12.diff
 guide-0.9.1:a45401f:vaapi-flag-ozone-wayland.diff
-guide-0.9.1:a49acb3:one-copy.diff
+guide-0.9.1:ad27bcd:one-copy.diff
 guide-0.9.1:bb6aa463:linux-unstable-deb.diff
-guide-0.9.1:bf59df32.diff:zero-copy.diff
+guide-0.9.1:8c5c7f51:zero-copy.diff
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
@@ -30,6 +30,6 @@ angle-use-pkg-config.patch
 swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
 log-video-decoder.patch
-extra:include-libva-config.patch
+include-libva-config.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
