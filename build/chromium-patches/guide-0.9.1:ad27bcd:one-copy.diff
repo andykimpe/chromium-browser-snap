@@ -1,6 +1,6 @@
-From b49ca2f0b9dca4ffc336c28afab9ddb01baefb83 Mon Sep 17 00:00:00 2001
+From ad27bcdb6b8a38d3ec0a7b7dabc9f81a82c4f26c Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Wed, 15 Feb 2023 12:34:25 +0800
+Date: Fri, 03 Mar 2023 09:56:09 +0800
 Subject: [PATCH] Add One-copy for Linux Video Capture
 
 Enable the gpu memory buffer with NV12 format of Linux camera capture path for local view and video encode.
@@ -145,11 +145,11 @@ index a237df51..f3cb693 100644
  
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 new file mode 100644
-index 0000000..9c0b407
+index 0000000..b1e9b95
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
-@@ -0,0 +1,276 @@
-+// Copyright 2022 The Chromium Authors
+@@ -0,0 +1,279 @@
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -205,7 +205,10 @@ index 0000000..9c0b407
 +
 +V4L2CaptureDelegate::V4L2CaptureDelegateGpuHelper::V4L2CaptureDelegateGpuHelper(
 +    V4L2CaptureDelegate* v4l2_capture_delegate)
-+    : v4l2_delegate_(v4l2_capture_delegate) {}
++    : v4l2_delegate_(v4l2_capture_delegate) {
++  LOG(WARNING) << "Enable GPU memory buffer for video capture!";
++  LOG(WARNING) << "Video capture works under the one-copy mode!";
++}
 +
 +V4L2CaptureDelegate ::V4L2CaptureDelegateGpuHelper::
 +    ~V4L2CaptureDelegateGpuHelper() = default;
@@ -428,11 +431,11 @@ index 0000000..9c0b407
 \ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 new file mode 100644
-index 0000000..237fe321
+index 0000000..a627a85
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 @@ -0,0 +1,72 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -507,11 +510,11 @@ index 0000000..237fe321
 \ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc
 new file mode 100644
-index 0000000..0ffe633
+index 0000000..96eb79c
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc
 @@ -0,0 +1,59 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -572,11 +575,11 @@ index 0000000..0ffe633
 +}  // namespace media
 diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h
 new file mode 100644
-index 0000000..9fd596b
+index 0000000..2af6da7
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.h
 @@ -0,0 +1,41 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -619,11 +622,11 @@ index 0000000..9fd596b
 +#endif  // MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_FACTORY_H_
 diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.cc b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.cc
 new file mode 100644
-index 0000000..135c775
+index 0000000..6c65bb4
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.cc
 @@ -0,0 +1,91 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -716,11 +719,11 @@ index 0000000..135c775
 +}  // namespace media
 diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h
 new file mode 100644
-index 0000000..c928be21
+index 0000000..d6e01dcf
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h
 @@ -0,0 +1,41 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +

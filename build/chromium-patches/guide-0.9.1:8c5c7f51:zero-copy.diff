@@ -1,6 +1,6 @@
-From acc8db0fee233e90f4b779ba29deec4f2f24586e Mon Sep 17 00:00:00 2001
+From 8c5c7f5180416d5f60929189dd05898bdb6ff32b Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Wed, 15 Feb 2023 12:41:41 +0800
+Date: Fri, 03 Mar 2023 11:56:08 +0800
 Subject: [PATCH] Add the zero-copy for Linux* video capture
 
 Add the zero-copy supporting for video capture pipeline.
@@ -25,7 +25,7 @@ index 76c9384..752ffac 100644
        "video/linux/v4l2_gpu_memory_buffer_factory.h",
        "video/linux/v4l2_gpu_memory_buffer_tracker.cc",
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.cc b/media/capture/video/linux/v4l2_capture_delegate.cc
-index a72e9e3..a9bda63e 100644
+index a72e9e3..638e9e9 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate.cc
 @@ -27,6 +27,7 @@
@@ -75,7 +75,7 @@ index a72e9e3..a9bda63e 100644
    if (use_gpu_buffer_) {
      v4l2_gpu_helper_ = std::make_unique<V4L2CaptureDelegateGpuHelper>(this);
    }
-@@ -297,6 +305,17 @@
+@@ -297,6 +305,20 @@
      return;
    }
  
@@ -86,6 +86,9 @@ index a72e9e3..a9bda63e 100644
 +                         sizeof(kV4L2LoopbackDriver)) &&
 +        0 == std::memcmp(cap.card, kCardIntel, sizeof(kCardIntel))) {
 +      use_external_dma_buf_ = true;
++      LOG(WARNING) << "Video capture will work under the zero-copy mode!";
++    }else {
++      LOG(WARNING) << "Video capture works under the one-copy mode!";
 +    }
 +
 +    V4L2ExternalBufferCache::Instance()->Init(v4l2_);
@@ -93,7 +96,7 @@ index a72e9e3..a9bda63e 100644
    // Get supported video formats in preferred order. For large resolutions,
    // favour mjpeg over raw formats.
    const std::vector<uint32_t>& desired_v4l2_formats =
-@@ -315,8 +334,8 @@
+@@ -315,8 +337,8 @@
    }
  
    DVLOG(1) << "Chosen pixel format is " << FourccToString(*best);
@@ -103,7 +106,7 @@ index a72e9e3..a9bda63e 100644
    if (DoIoctl(VIDIOC_S_FMT, &video_fmt_) < 0) {
      SetErrorState(VideoCaptureError::kV4L2FailedToSetVideoCaptureFormat,
                    FROM_HERE, "Failed to set video capture format");
-@@ -388,6 +407,11 @@
+@@ -388,6 +410,11 @@
    TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("video_and_image_capture"),
                 "V4L2CaptureDelegate::StopAndDeAllocate");
    StopStream();
@@ -115,7 +118,7 @@ index a72e9e3..a9bda63e 100644
    // At this point we can close the device.
    // This is also needed for correctly changing settings later via VIDIOC_S_FMT.
    device_fd_.reset();
-@@ -672,7 +696,11 @@
+@@ -672,7 +699,11 @@
    return weak_factory_.GetWeakPtr();
  }
  
@@ -128,7 +131,7 @@ index a72e9e3..a9bda63e 100644
  
  bool V4L2CaptureDelegate::RunIoctl(int request, void* argp) {
    int num_retries = 0;
-@@ -914,7 +942,9 @@
+@@ -914,7 +945,9 @@
        return;
      }
  
@@ -139,7 +142,7 @@ index a72e9e3..a9bda63e 100644
      const scoped_refptr<BufferTracker>& buffer_tracker =
          buffer_tracker_pool_[buffer.index];
  
-@@ -957,10 +987,9 @@
+@@ -957,10 +990,9 @@
        // transfer = v4l2_format->fmt.pix.xfer_func;
        // See http://crbug.com/959919.
        if (use_gpu_buffer_) {
@@ -153,7 +156,7 @@ index a72e9e3..a9bda63e 100644
        } else {
          client_->OnIncomingCapturedData(
              buffer_tracker->start(), buffer_tracker->payload_size(),
-@@ -980,11 +1009,12 @@
+@@ -980,11 +1012,12 @@
        if (blob)
          std::move(cb).Run(std::move(blob));
      }
@@ -171,7 +174,7 @@ index a72e9e3..a9bda63e 100644
      }
    }
  
-@@ -1028,14 +1058,51 @@
+@@ -1028,14 +1061,52 @@
    client_->OnError(error, from_here, reason);
  }
  
@@ -192,6 +195,7 @@ index a72e9e3..a9bda63e 100644
 +    if (DoIoctl(VIDIOC_EXPBUF, &expbuf) || expbuf.fd <= 0) {
 +      DLOG(ERROR) << "Not support dma buffer!";
 +      use_external_dma_buf_ = false;
++      LOG(WARNING) << "Video capture fallback to one-copy mode!";
 +    }
 +  }
 +
@@ -227,7 +231,7 @@ index a72e9e3..a9bda63e 100644
  }
  
  bool V4L2CaptureDelegate::BufferTracker::Init(int fd,
-@@ -1055,4 +1122,13 @@
+@@ -1055,4 +1126,13 @@
    return true;
  }
  
@@ -270,7 +274,7 @@ index f3cb693..a137716 100644
  
    base::WeakPtrFactory<V4L2CaptureDelegate> weak_factory_{this};
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
-index 9c0b407..3e2dd522 100644
+index b1e9b95..80c7710b 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 @@ -4,7 +4,9 @@
@@ -283,7 +287,15 @@ index 9c0b407..3e2dd522 100644
  #include "third_party/libyuv/include/libyuv.h"
  #include "ui/gfx/gpu_memory_buffer.h"
  
-@@ -124,6 +126,85 @@
+@@ -56,7 +58,6 @@
+     V4L2CaptureDelegate* v4l2_capture_delegate)
+     : v4l2_delegate_(v4l2_capture_delegate) {
+   LOG(WARNING) << "Enable GPU memory buffer for video capture!";
+-  LOG(WARNING) << "Video capture works under the one-copy mode!";
+ }
+ 
+ V4L2CaptureDelegate ::V4L2CaptureDelegateGpuHelper::
+@@ -127,6 +128,85 @@
    return status;
  }
  
@@ -370,7 +382,7 @@ index 9c0b407..3e2dd522 100644
      const uint8_t* sample,
      size_t sample_size,
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
-index 237fe321..bc473c1f 100644
+index a627a85..505ce9e 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 @@ -35,6 +35,16 @@
@@ -392,11 +404,11 @@ index 237fe321..bc473c1f 100644
                                size_t sample_size,
 diff --git a/media/capture/video/linux/v4l2_external_buffer_cache.cc b/media/capture/video/linux/v4l2_external_buffer_cache.cc
 new file mode 100644
-index 0000000..9c20345
+index 0000000..34c274c
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_external_buffer_cache.cc
 @@ -0,0 +1,93 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -491,11 +503,11 @@ index 0000000..9c20345
 +}  // namespace media
 diff --git a/media/capture/video/linux/v4l2_external_buffer_cache.h b/media/capture/video/linux/v4l2_external_buffer_cache.h
 new file mode 100644
-index 0000000..9515af2a
+index 0000000..b7ef06e
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_external_buffer_cache.h
 @@ -0,0 +1,65 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -563,11 +575,11 @@ index 0000000..9515af2a
 \ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_external_buffer_tracker.cc b/media/capture/video/linux/v4l2_external_buffer_tracker.cc
 new file mode 100644
-index 0000000..05c77ed
+index 0000000..afd4c9b
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_external_buffer_tracker.cc
 @@ -0,0 +1,73 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
@@ -643,11 +655,11 @@ index 0000000..05c77ed
 \ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_external_buffer_tracker.h b/media/capture/video/linux/v4l2_external_buffer_tracker.h
 new file mode 100644
-index 0000000..eff1e07
+index 0000000..26f3624
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_external_buffer_tracker.h
 @@ -0,0 +1,41 @@
-+// Copyright 2022 The Chromium Authors
++// Copyright 2023 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
 +
