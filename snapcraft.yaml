@@ -121,8 +121,8 @@ parts:
 
   chromium:
     plugin: nil
-    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-111.0.5563.19.tar.xz
-    source-checksum: sha512/e6e27485744baa79995783d4f80110c2fc19e6ae6da0641602a310a0f49dd762cbfde34428d956fdebd262fa07d7a4489f92b253bbd42ccb134202896eb4c997
+    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-112.0.5615.20.tar.xz
+    source-checksum: sha512/ea94c8dbd290e143faab36aa857402ad5e41787f7ae8941440d034e42a9aa74c146577cd93f6bcb8c65ccbc0e60a325a5646ddbef4076501938e9ac8117c6b22
     after:
       - chromium-build
       - launcher
@@ -148,8 +148,8 @@ parts:
       - libpam0g-dev
       - libpci-dev
       - libssl-dev
-      - libwayland-dev
       - libsystemd-dev
+      - libwayland-dev
       - libxshmfence-dev
       - libxss-dev
       - lsb-release
@@ -284,6 +284,8 @@ parts:
           $SNAPCRAFT_PART_SRC/chrome/app/resources/manpage.1.in \
           > $SNAPCRAFT_PART_INSTALL/man1/chrome.1
       gzip -9n $SNAPCRAFT_PART_INSTALL/man1/chrome.1
+    stage:
+      - -usr/lib/*/libsecret-*
     prime:
       - -etc/init.d
       - -etc/xdg
@@ -374,6 +376,20 @@ parts:
       - libgl1-mesa-glx
       - libwayland-dev
 
+  libsecret:
+    source: https://gitlab.gnome.org/GNOME/libsecret.git
+    source-depth: 1
+    source-tag: '0.20.5'
+    plugin: meson
+    meson-parameters:
+      - --prefix=/usr
+      - -Dgtk_doc=false
+      - -Dmanpage=false
+      - -Dgcrypt=false  # https://gitlab.gnome.org/GNOME/libsecret/-/issues/49
+    stage:
+      - usr/lib/*/libsecret-*
+
+  # VA-API drivers for HW-accelerated video decoding
   va-drivers:
     source: https://github.com/intel/media-driver/archive/refs/tags/intel-media-22.6.1.tar.gz
     after: [gmmlib, libva]

@@ -4,6 +4,7 @@ guide-0.9.1:a45401f:vaapi-flag-ozone-wayland.diff
 guide-0.9.1:ad27bcd:one-copy.diff
 guide-0.9.1:bb6aa463:linux-unstable-deb.diff
 guide-0.9.1:8c5c7f51:zero-copy.diff
+revert-360df2f.diff
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
