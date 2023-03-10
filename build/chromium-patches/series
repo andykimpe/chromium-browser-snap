@@ -31,6 +31,6 @@ angle-use-pkg-config.patch
 swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
 log-video-decoder.patch
-include-libva-config.patch
+extra:include-libva-config.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
