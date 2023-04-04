@@ -14,4 +14,13 @@ ln -sf "${real_wayland}.lock" "$XDG_RUNTIME_DIR"
 
 unset DISPLAY
 
+# Chromium creates a file with a unique name which indicates whether or not the
+# requested profile is in-use by some other chromium process. Chromium is
+# supposed to clean up after itself, but sometimes this lock file persists.
+# Because we are running Chromium as a kiosk, it is safe to manually remove this
+# file - the profile should not be in use.
+if [ -e "$SNAP_USER_COMMON/chromium/SingletonLock" ]; then
+    unlink "$SNAP_USER_COMMON/chromium/SingletonLock"
+fi
+
 exec "$@"
