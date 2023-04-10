@@ -149,8 +149,8 @@ parts:
 
   chromium:
     plugin: nil
-    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-110.0.5481.77.tar.xz
-    source-checksum: sha512/5c10732a506c3f994bf4618aa1b0cac2a69f638095320d1c2c0ccff1853398073b28cf5c5c476138eb5b26af86ad8c0abc5619cdc8caaa6f080d236e4352ac82
+    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-112.0.5615.49.tar.xz
+    source-checksum: sha512/48387f8b960a33520da70953912076582e83263b2194fdb8afddf888f5e4d31ade0bf41e19fbdc8c2827c3371228428072520fdda41c229c78e2d71c341961e0
     after:
       - chromium-build
       - launcher
@@ -176,6 +176,7 @@ parts:
       - libpam0g-dev
       - libpci-dev
       - libssl-dev
+      - libsystemd-dev
       - libva-dev
       - libxshmfence-dev
       - libxss-dev
