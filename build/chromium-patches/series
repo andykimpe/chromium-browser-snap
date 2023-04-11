@@ -6,7 +6,6 @@ optimization/topic-intel/ad27bcd:one-copy.diff
 optimization/topic-intel/bb6aa463:linux-unstable-deb.diff
 optimization/topic-intel/8c5c7f51:zero-copy.diff
 optimization/topic-intel/b4e98991:enable-vda-video-encoder-on-wayland.diff
-revert-360df2f.diff
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
