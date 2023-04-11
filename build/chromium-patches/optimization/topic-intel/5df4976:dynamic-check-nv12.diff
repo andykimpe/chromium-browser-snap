@@ -1,4 +1,4 @@
-From fe38fdb19778e6e472a156c6aa63fe494e803f4d Mon Sep 17 00:00:00 2001
+From 5df4976fd3be9e20d6bad09d23e197ca393b573b Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
 Date: Thu, 02 Feb 2023 14:22:34 +0800
 Subject: [PATCH] Dynamic fallback to system memory when failed to allocate NV12 GPU memory buffer
@@ -117,7 +117,7 @@ index 15c7340..9add661 100644
  }
  
 diff --git a/ui/gfx/mojom/gpu_extra_info_mojom_traits.h b/ui/gfx/mojom/gpu_extra_info_mojom_traits.h
-index 12b616f..7c908bf0 100644
+index 12b616f5..7c908bf0 100644
 --- a/ui/gfx/mojom/gpu_extra_info_mojom_traits.h
 +++ b/ui/gfx/mojom/gpu_extra_info_mojom_traits.h
 @@ -68,6 +68,12 @@
@@ -134,7 +134,7 @@ index 12b616f..7c908bf0 100644
  
  }  // namespace mojo
 diff --git a/ui/ozone/platform/wayland/gpu/wayland_gl_egl_utility.cc b/ui/ozone/platform/wayland/gpu/wayland_gl_egl_utility.cc
-index b3e92d8..ee165fe 100644
+index b3e92d8..dc982f3 100644
 --- a/ui/ozone/platform/wayland/gpu/wayland_gl_egl_utility.cc
 +++ b/ui/ozone/platform/wayland/gpu/wayland_gl_egl_utility.cc
 @@ -5,6 +5,11 @@
@@ -149,17 +149,13 @@ index b3e92d8..ee165fe 100644
  
  // From ANGLE's egl/eglext.h. Follows the same approach as in
  // ui/gl/gl_surface_egl.cc
-@@ -74,7 +79,23 @@
+@@ -74,7 +79,19 @@
  
  void WaylandGLEGLUtility::CollectGpuExtraInfo(
      bool enable_native_gpu_memory_buffers,
 -    gfx::GpuExtraInfo& gpu_extra_info) const {}
 +    gfx::GpuExtraInfo& gpu_extra_info) const {
 +#if BUILDFLAG(IS_LINUX)
-+  if (!enable_native_gpu_memory_buffers) {
-+    gpu_extra_info.gpu_memory_buffer_support_NV12 = false;
-+    return;
-+  }
 +  scoped_refptr<gfx::NativePixmap> pixmap;
 +  pixmap = ui::OzonePlatform::GetInstance()
 +               ->GetSurfaceFactoryOzone()
