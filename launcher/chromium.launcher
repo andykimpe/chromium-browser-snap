@@ -140,22 +140,23 @@ if [ $WANT_HEADLESS -eq 0 ] ; then
 fi
 
 # Add necessary flags for VAAPI video en/decoding
-CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder,VaapiVideoDecodeLinuxGL --disable-features=UseChromeOSDirectVideoDecoder --video-capture-use-external-dma-buffer'
-
-# Still causes issues with PIXEL_FORMAT_NV12 on non-intel GPUs. We cannot enable this here.
-#CHROMIUM_VAAPI_FLAGS="--video-capture-use-gpu-memory-buffer $CHROMIUM_VAAPI_FLAGS"
-
+CHROMIUM_VAAPI_FLAGS='--enable-features=VaapiVideoDecoder,VaapiVideoEncoder,VaapiVideoDecodeLinuxGL,UseChromeOSDirectVideoDecoder'
+CHROMIUM_ONECOPY_FLAGS="--video-capture-use-gpu-memory-buffer"
 if [ -n "$WAYLAND_DISPLAY" ]; then
-    CHROMIUM_VAAPI_FLAGS="--ozone-platform=wayland $CHROMIUM_VAAPI_FLAGS"
+    CHROMIUM_FLAGS="--ozone-platform=wayland $CHROMIUM_FLAGS"
 fi
+CHROMIUM_MPO_FLAGS="--enable-hardware-overlays=\"\""
 
-CHROMIUM_FLAGS="--enable-hardware-overlays=single-fullscreen,single-on-top,underlay --disable-features=TFLiteLanguageDetectionEnabled $CHROMIUM_FLAGS"
+CHROMIUM_FLAGS="$CHROMIUM_VAAPI_FLAGS $CHROMIUM_ONECOPY_FLAGS $CHROMIUM_MPO_FLAGS $CHROMIUM_FLAGS"
+
+# GlobalVaapiLock : webRTC optimization
+CHROMIUM_FLAGS="--disable-features=TFLiteLanguageDetectionEnabled,GlobalVaapiLock $CHROMIUM_FLAGS"
 
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
-  exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_VAAPI_FLAGS $CHROMIUM_FLAGS "$@"
+  exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_FLAGS "$@"
 else
   TEMP_PROFILE=$(mktemp -d)
   trap "rm -rf $TEMP_PROFILE" EXIT
   # we can't exec here as we need to clean-up the temporary profile
-  "$SNAP/usr/lib/chromium-browser/chrome" --user-data-dir=$TEMP_PROFILE --password-store=$PASSWORD_STORE $CHROMIUM_VAAPI_FLAGS $CHROMIUM_FLAGS "$@"
+  "$SNAP/usr/lib/chromium-browser/chrome" --user-data-dir=$TEMP_PROFILE --password-store=$PASSWORD_STORE $CHROMIUM_FLAGS "$@"
 fi
