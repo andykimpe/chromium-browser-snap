@@ -27,3 +27,5 @@ dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
 include-libva-config.patch
 generate-missing-css-js.patch
+hwcap2-mte.patch
+fix-nss-include.patch
