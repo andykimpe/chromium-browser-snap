@@ -1,0 +1,55 @@
+Description: Fix failure to find NSS symbols.
+ .
+ /usr/include/nss.h is being included instead of /usr/include/nss/nss.h.
+ .
+ This problem showed up when migrating from core20 to core22.
+ .
+ Most likely the pkg-config-rewrite-include-paths patch is the cause and
+ needs to be reworked.
+Author: Nathan Pratta Teodosio <nathan.teodosio@canonical.com>
+Forwarded: not-needed
+
+--- a/crypto/nss_util.cc
++++ b/crypto/nss_util.cc
+@@ -4,7 +4,7 @@
+ 
+ #include "crypto/nss_util.h"
+ 
+-#include <nss.h>
++#include <nss/nss.h>
+ #include <pk11pub.h>
+ #include <plarena.h>
+ #include <prerror.h>
+--- a/crypto/scoped_nss_types.h
++++ b/crypto/scoped_nss_types.h
+@@ -4,7 +4,7 @@
+ #include <cert.h>
+ #include <certt.h>
+ #include <keyhi.h>
+-#include <nss.h>
++#include <nss/nss.h>
+ #include <pk11pub.h>
+ #include <plarena.h>
+ 
+--- a/net/cert/x509_util_nss.cc
++++ b/net/cert/x509_util_nss.cc
+@@ -8,7 +8,7 @@
+ #include <certdb.h>
+ #include <cryptohi.h>
+ #include <dlfcn.h>
+-#include <nss.h>
++#include <nss/nss.h>
+ #include <pk11pub.h>
+ #include <prerror.h>
+ #include <seccomon.h>
+--- a/net/ssl/client_cert_store_nss.cc
++++ b/net/ssl/client_cert_store_nss.cc
+@@ -8,7 +8,7 @@
+ 
+ #include "net/ssl/client_cert_store_nss.h"
+ 
+-#include <nss.h>
++#include <nss/nss.h>
+ #include <ssl.h>
+ 
+ #include <algorithm>
