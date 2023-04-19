@@ -158,6 +158,7 @@ parts:
       - libva
     build-packages:
       - chrpath
+      - cmake
       - default-jre-headless
       - elfutils
       - g++
@@ -219,15 +220,6 @@ parts:
       if [ $SNAPCRAFT_TARGET_ARCH = "amd64" ]; then
         python3 tools/clang/scripts/update.py
       else
-        # Building clang requires a version of cmake newer than what's in
-        # focal. Fetch it and build it from source.
-        CMAKE_VERSION=3.18.1
-        wget -O - https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz | tar -x -z
-        cd cmake-$CMAKE_VERSION
-        ./bootstrap --prefix=/usr
-        make -j$SNAPCRAFT_PARALLEL_BUILD_COUNT install
-        cd ..
-
         # Fetch and build clang from source.
         python3 tools/clang/scripts/build.py --skip-build --without-android --without-fuchsia
         # --with-ml-inliner-model= to avoid depending on vpython3,
