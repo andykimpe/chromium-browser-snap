@@ -1,21 +1,20 @@
-From ad27bcdb6b8a38d3ec0a7b7dabc9f81a82c4f26c Mon Sep 17 00:00:00 2001
+From 1937d6067bf5b24728b64e5f09f07c00dc348073 Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Fri, 03 Mar 2023 09:56:09 +0800
-Subject: [PATCH] Add One-copy for Linux Video Capture
+Date: Thu, 20 Apr 2023 13:31:34 +0800
+Subject: [PATCH] [Duplicate] Add the one-copy for Linux* video capture
 
-Enable the gpu memory buffer with NV12 format of Linux camera capture path for local view and video encode.
+Duplicate the "Add one-copy for Linux* video capture" before upstream
+done.
 
-Design Doc: https://docs.google.com/document/d/1_9ABHX-effg5WD5sC3J1mDXiYaU4zZnf/edit
-
-Bug: 1374150
-Change-Id: I3afff1c45f47e7c7141bd4bdcdf1811ea0906349
+Bug: N/A
+Change-Id: Idfe932f495dd717954b596ef5c49981de510e382
 ---
 
 diff --git a/content/browser/utility_process_host.cc b/content/browser/utility_process_host.cc
-index fe0b513..77cdee8 100644
+index d2bd22ce..6e29181 100644
 --- a/content/browser/utility_process_host.cc
 +++ b/content/browser/utility_process_host.cc
-@@ -60,6 +60,11 @@
+@@ -69,6 +69,11 @@
  #include "media/capture/capture_switches.h"
  #endif
  
@@ -26,11 +25,12 @@ index fe0b513..77cdee8 100644
 +
  namespace content {
  
- UtilityMainThreadFactoryFunction g_utility_main_thread_factory = nullptr;
-@@ -355,6 +360,17 @@
-     file_data_->files_to_preload.merge(GetV8SnapshotFilesToPreload());
- #endif  // BUILDFLAG(IS_POSIX)
- 
+ namespace {
+@@ -408,6 +413,16 @@
+       file_data_->files_to_preload[kNetworkContextParentDirsDescriptor] =
+           PassNetworkContextParentDirs(std::move(network_context_parent_dirs));
+     }
++#endif
 +#if BUILDFLAG(IS_LINUX)
 +    if (metrics_name_ == video_capture::mojom::VideoCaptureService::Name_) {
 +      if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
@@ -40,16 +40,14 @@ index fe0b513..77cdee8 100644
 +        cmd_line->AppendSwitch(switches::kVideoCaptureUseGpuMemoryBuffer);
 +      }
 +    }
-+#endif
-+
+ #endif  // BUILDFLAG(IS_LINUX)
+ 
      std::unique_ptr<UtilitySandboxedProcessLauncherDelegate> delegate =
-         std::make_unique<UtilitySandboxedProcessLauncherDelegate>(
-             sandbox_type_, env_, *cmd_line);
 diff --git a/media/capture/BUILD.gn b/media/capture/BUILD.gn
-index 3e6bfcb..76c9384 100644
+index b56936b..3d88a96 100644
 --- a/media/capture/BUILD.gn
 +++ b/media/capture/BUILD.gn
-@@ -274,6 +274,17 @@
+@@ -272,6 +272,17 @@
      ]
    }
  
@@ -68,11 +66,11 @@ index 3e6bfcb..76c9384 100644
      sources += [
        "video/chromeos/camera_3a_controller.cc",
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.cc b/media/capture/video/linux/v4l2_capture_delegate.cc
-index c447d607..a72e9e3 100644
+index 864111f..c44cbfd 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate.cc
-@@ -23,8 +23,10 @@
- #include "media/base/bind_to_current_loop.h"
+@@ -22,8 +22,10 @@
+ #include "build/build_config.h"
  #include "media/base/video_frame.h"
  #include "media/base/video_types.h"
 +#include "media/capture/capture_switches.h"
@@ -82,7 +80,7 @@ index c447d607..a72e9e3 100644
  #include "media/capture/video/linux/video_capture_device_linux.h"
  
  using media::mojom::MeteringMode;
-@@ -248,7 +250,12 @@
+@@ -265,7 +267,12 @@
        device_fd_(v4l2),
        is_capturing_(false),
        timeout_count_(0),
@@ -96,7 +94,7 @@ index c447d607..a72e9e3 100644
  
  void V4L2CaptureDelegate::AllocateAndStart(
      int width,
-@@ -366,7 +373,6 @@
+@@ -383,7 +390,6 @@
                                       video_fmt_.fmt.pix.height);
    capture_format_.frame_rate = frame_rate;
    capture_format_.pixel_format = pixel_format;
@@ -104,7 +102,7 @@ index c447d607..a72e9e3 100644
    if (!StartStream())
      return;
  
-@@ -950,10 +956,17 @@
+@@ -1110,10 +1116,17 @@
        // matrix = v4l2_format->fmt.pix.ycbcr_enc;
        // transfer = v4l2_format->fmt.pix.xfer_func;
        // See http://crbug.com/959919.
@@ -127,10 +125,10 @@ index c447d607..a72e9e3 100644
  
      while (!take_photo_callbacks_.empty()) {
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.h b/media/capture/video/linux/v4l2_capture_delegate.h
-index a237df51..f3cb693 100644
+index c9be3d0..38d54b2 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.h
 +++ b/media/capture/video/linux/v4l2_capture_delegate.h
-@@ -138,6 +138,12 @@
+@@ -144,6 +144,12 @@
    // Clockwise rotation in degrees. This value should be 0, 90, 180, or 270.
    int rotation_;
  
@@ -805,10 +803,10 @@ index 1756e1d..331336d 100644
        return nullptr;
  #endif
 diff --git a/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc b/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
-index cb0e699..57b8207 100644
+index 1a826c9..a7832df 100644
 --- a/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
 +++ b/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
-@@ -534,6 +534,7 @@
+@@ -539,6 +539,7 @@
    } else {
      planes.push_back(gfx::BufferPlane::DEFAULT);
    }
@@ -816,26 +814,8 @@ index cb0e699..57b8207 100644
    for (size_t plane = 0; plane < planes.size(); ++plane) {
      if (should_recreate_shared_image ||
          buffer_context_->gmb_resources()->mailboxes[plane].IsZero()) {
-@@ -551,8 +552,15 @@
-   }
- 
-   const unsigned texture_target =
--      buffer_context_->gpu_factories()->ImageTextureTarget(
--          gpu_memory_buffer_->GetFormat());
-+#if BUILDFLAG(IS_LINUX)
-+      // Explicitly set GL_TEXTURE_EXTERNAL_OES since ImageTextureTarget() will
-+      // return GL_TEXTURE_2D due to GMB factory not supporting NV12 GMBs.
-+      (frame_info_->pixel_format == media::PIXEL_FORMAT_NV12)
-+          ? GL_TEXTURE_EXTERNAL_OES
-+          :
-+#endif
-+          buffer_context_->gpu_factories()->ImageTextureTarget(
-+              gpu_memory_buffer_->GetFormat());
- 
-   const gpu::SyncToken sync_token = sii->GenVerifiedSyncToken();
- 
 diff --git a/ui/ozone/public/ozone_platform.cc b/ui/ozone/public/ozone_platform.cc
-index 0243f94..50347f0f 100644
+index 6c4ce21..17c100c 100644
 --- a/ui/ozone/public/ozone_platform.cc
 +++ b/ui/ozone/public/ozone_platform.cc
 @@ -91,6 +91,19 @@
@@ -859,10 +839,10 @@ index 0243f94..50347f0f 100644
  OzonePlatform* OzonePlatform::GetInstance() {
    DCHECK(g_instance) << "OzonePlatform is not initialized";
 diff --git a/ui/ozone/public/ozone_platform.h b/ui/ozone/public/ozone_platform.h
-index ecfc348..2035034 100644
+index f61ffe9..4720e7e6 100644
 --- a/ui/ozone/public/ozone_platform.h
 +++ b/ui/ozone/public/ozone_platform.h
-@@ -245,6 +245,12 @@
+@@ -241,6 +241,12 @@
    // provided by |args| as with InitalizeForUI.
    static void InitializeForGPU(const InitParams& args);
  

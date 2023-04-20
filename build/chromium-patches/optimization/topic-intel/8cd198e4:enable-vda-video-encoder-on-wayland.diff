@@ -1,10 +1,10 @@
-From b4e989917b60717230f92546eeff5c090df9dc2c Mon Sep 17 00:00:00 2001
+From 8cd198e4e280faeda02b2cafe9eb876f007d4060 Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Mon, 03 Apr 2023 15:37:02 +0800
+Date: Thu, 20 Apr 2023 14:29:16 +0800
 Subject: [PATCH] Enable the VDAVideoDecoder on the wayland
 
 Bug: N/A
-Change-Id: If4044b552e3d802ea48690365e1a1d63d35b1f51
+Change-Id: I3f2629e274cbe26034964e39b4679fe083945131
 ---
 
 diff --git a/media/gpu/vaapi/vaapi_picture_factory.cc b/media/gpu/vaapi/vaapi_picture_factory.cc
