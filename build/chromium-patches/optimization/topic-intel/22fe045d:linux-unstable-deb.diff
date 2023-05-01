@@ -1,10 +1,10 @@
-From bb6aa4636c23e2e0625a3918ea14995f30aebf01 Mon Sep 17 00:00:00 2001
+From 22fe045deac0551720d7292022f443b22703f336 Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Thu, 02 Feb 2023 14:28:54 +0800
-Subject: [PATCH] Enable linux:unstable_deb build target when using the chromium minigbm
+Date: Thu, 20 Apr 2023 14:37:26 +0800
+Subject: [PATCH] Enable "linux:unstable_deb" build target when using the chromium minigbm
 
-Bug:N/A
-Change-Id: Ied6a2d4a8aace6db581d97819e4ce7a346ebd93f
+Bug: N/A
+Change-Id: Ic37059be0f0719895acdba756292aed71820feba
 ---
 
 diff --git a/third_party/minigbm/BUILD.gn b/third_party/minigbm/BUILD.gn
