@@ -19,9 +19,9 @@ Forwarded: not-needed
 -    elif platform.machine() == 'riscv64':
 -      cmake_args.append(
 -          '-DLLVM_DEFAULT_TARGET_TRIPLE=riscv64-unknown-linux-gnu')
--    else:
--      cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-unknown-linux-gnu')
--    cmake_args.append('-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON')
-   elif sys.platform == 'win32':
-     cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-pc-windows-msvc')
- 
+-    elif platform.machine() == 'loongarch64':
+-      cmake_args.append(
+-          '-DLLVM_DEFAULT_TARGET_TRIPLE=loongarch64-unknown-linux-gnu')
+     else:
+       cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-unknown-linux-gnu')
+     cmake_args.append('-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON')
