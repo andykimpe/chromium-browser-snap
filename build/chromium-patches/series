@@ -35,3 +35,4 @@ log-video-decoder.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
 fix-nss-include.patch
+VAEncSequenceParameterBufferAV1.patch
