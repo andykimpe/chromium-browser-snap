@@ -8,7 +8,7 @@ Forwarded: not-needed
 
 --- a/tools/clang/scripts/build.py
 +++ b/tools/clang/scripts/build.py
-@@ -993,16 +993,6 @@ def main():
+@@ -993,19 +993,6 @@ def main():
        cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=arm64-apple-darwin')
      else:
        cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-apple-darwin')
@@ -22,6 +22,9 @@ Forwarded: not-needed
 -    elif platform.machine() == 'loongarch64':
 -      cmake_args.append(
 -          '-DLLVM_DEFAULT_TARGET_TRIPLE=loongarch64-unknown-linux-gnu')
-     else:
-       cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-unknown-linux-gnu')
-     cmake_args.append('-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON')
+-    else:
+-      cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-unknown-linux-gnu')
+-    cmake_args.append('-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON')
+   elif sys.platform == 'win32':
+     cmake_args.append('-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-pc-windows-msvc')
+ 
