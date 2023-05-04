@@ -5,7 +5,7 @@ Forwarded: not-needed
 --- a/tools/clang/scripts/build.py
 +++ b/tools/clang/scripts/build.py
 @@ -811,9 +811,7 @@ def main():
-       projects += ';lld'
+       runtimes.append('compiler-rt')
  
      bootstrap_targets = 'X86'
 -    if sys.platform == 'darwin':
@@ -14,4 +14,4 @@ Forwarded: not-needed
 +    bootstrap_targets += ';ARM;AArch64'
      bootstrap_args = base_cmake_args + [
          '-DLLVM_TARGETS_TO_BUILD=' + bootstrap_targets,
-         '-DLLVM_ENABLE_PROJECTS=' + projects,
+         '-DLLVM_ENABLE_PROJECTS=clang;lld',

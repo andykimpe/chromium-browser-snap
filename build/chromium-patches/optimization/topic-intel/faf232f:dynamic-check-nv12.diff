@@ -11,7 +11,7 @@ diff --git a/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc b/conten
 index b3e46e9..e175b29 100644
 --- a/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
 +++ b/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
-@@ -21,6 +21,10 @@
+@@ -22,6 +22,10 @@
  #include "ui/accelerated_widget_mac/window_resize_helper_mac.h"
  #endif
  
