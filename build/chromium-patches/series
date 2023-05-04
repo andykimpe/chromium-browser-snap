@@ -4,7 +4,7 @@ optimization/topic-intel/faf232f:dynamic-check-nv12.diff
 optimization/topic-intel/4ed5da1:vaapi-flag-ozone-wayland.diff
 optimization/topic-intel/bcb59c1:one-copy.diff
 optimization/topic-intel/22fe045d:linux-unstable-deb.diff
-optimization/topic-intel/7be5b21:zero-copy.diff
+optimization/topic-intel/95a7ef3:zero-copy.diff
 optimization/topic-intel/8cd198e4:enable-vda-video-encoder-on-wayland.diff
 title-bar-default-system.patch-v35
 search-credit.patch

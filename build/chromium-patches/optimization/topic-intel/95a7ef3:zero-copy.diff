@@ -1,6 +1,6 @@
-From 7be5b21e310c658761cbff3376c2f32f9fd964bb Mon Sep 17 00:00:00 2001
+From 95a7ef3f46e330510edb3dcddd9439e798020dea Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Thu, 20 Apr 2023 14:08:51 +0800
+Date: Thu, 04 May 2023 10:44:39 +0800
 Subject: [PATCH] Add the zero-copy for Linux* video capture
 
 Add the zero-copy supporting for video capture pipeline.
@@ -25,7 +25,7 @@ index 3d88a96..1765c49 100644
        "video/linux/v4l2_gpu_memory_buffer_factory.h",
        "video/linux/v4l2_gpu_memory_buffer_tracker.cc",
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.cc b/media/capture/video/linux/v4l2_capture_delegate.cc
-index c44cbfd..bd47ee3 100644
+index bbe8d2f4..31d44ff 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate.cc
 @@ -26,6 +26,7 @@
@@ -57,7 +57,7 @@ index c44cbfd..bd47ee3 100644
  // V4L2 color formats supported by V4L2CaptureDelegate derived classes.
  // This list is ordered by precedence of use -- but see caveats for MJPEG.
  struct {
-@@ -203,6 +209,7 @@
+@@ -176,6 +182,7 @@
      DCHECK_LE(payload_size, length_);
      payload_size_ = payload_size;
    }
@@ -65,7 +65,7 @@ index c44cbfd..bd47ee3 100644
  
   private:
    friend class base::RefCounted<BufferTracker>;
-@@ -268,7 +275,8 @@
+@@ -313,7 +320,8 @@
        is_capturing_(false),
        timeout_count_(0),
        rotation_(rotation),
@@ -75,7 +75,7 @@ index c44cbfd..bd47ee3 100644
    if (use_gpu_buffer_) {
      v4l2_gpu_helper_ = std::make_unique<V4L2CaptureDelegateGpuHelper>(this);
    }
-@@ -314,6 +322,20 @@
+@@ -359,6 +367,20 @@
      return;
    }
  
@@ -87,7 +87,7 @@ index c44cbfd..bd47ee3 100644
 +        0 == std::memcmp(cap.card, kCardIntel, sizeof(kCardIntel))) {
 +      use_external_dma_buf_ = true;
 +      LOG(WARNING) << "Video capture will work under the zero-copy mode!";
-+    }else {
++    } else {
 +      LOG(WARNING) << "Video capture works under the one-copy mode!";
 +    }
 +
@@ -96,7 +96,7 @@ index c44cbfd..bd47ee3 100644
    // Get supported video formats in preferred order. For large resolutions,
    // favour mjpeg over raw formats.
    const std::vector<uint32_t>& desired_v4l2_formats =
-@@ -332,8 +354,8 @@
+@@ -377,8 +399,8 @@
    }
  
    DVLOG(1) << "Chosen pixel format is " << FourccToString(*best);
@@ -106,7 +106,7 @@ index c44cbfd..bd47ee3 100644
    if (DoIoctl(VIDIOC_S_FMT, &video_fmt_) < 0) {
      SetErrorState(VideoCaptureError::kV4L2FailedToSetVideoCaptureFormat,
                    FROM_HERE, "Failed to set video capture format");
-@@ -405,6 +427,11 @@
+@@ -450,6 +472,11 @@
    TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("video_and_image_capture"),
                 "V4L2CaptureDelegate::StopAndDeAllocate");
    StopStream();
@@ -118,7 +118,7 @@ index c44cbfd..bd47ee3 100644
    // At this point we can close the device.
    // This is also needed for correctly changing settings later via VIDIOC_S_FMT.
    device_fd_.reset();
-@@ -731,7 +758,11 @@
+@@ -776,7 +803,11 @@
    return weak_factory_.GetWeakPtr();
  }
  
@@ -131,7 +131,7 @@ index c44cbfd..bd47ee3 100644
  
  bool V4L2CaptureDelegate::RunIoctl(int request, void* argp) {
    int num_retries = 0;
-@@ -1074,7 +1105,9 @@
+@@ -1090,7 +1121,9 @@
        return;
      }
  
@@ -142,7 +142,7 @@ index c44cbfd..bd47ee3 100644
      const scoped_refptr<BufferTracker>& buffer_tracker =
          buffer_tracker_pool_[buffer.index];
  
-@@ -1117,10 +1150,9 @@
+@@ -1133,10 +1166,9 @@
        // transfer = v4l2_format->fmt.pix.xfer_func;
        // See http://crbug.com/959919.
        if (use_gpu_buffer_) {
@@ -156,7 +156,7 @@ index c44cbfd..bd47ee3 100644
        } else {
          client_->OnIncomingCapturedData(
              buffer_tracker->start(), buffer_tracker->payload_size(),
-@@ -1140,11 +1172,12 @@
+@@ -1156,11 +1188,12 @@
        if (blob)
          std::move(cb).Run(std::move(blob));
      }
@@ -174,7 +174,7 @@ index c44cbfd..bd47ee3 100644
      }
    }
  
-@@ -1188,14 +1221,52 @@
+@@ -1204,14 +1237,52 @@
    client_->OnError(error, from_here, reason);
  }
  
@@ -231,7 +231,7 @@ index c44cbfd..bd47ee3 100644
  }
  
  bool V4L2CaptureDelegate::BufferTracker::Init(int fd,
-@@ -1215,4 +1286,13 @@
+@@ -1231,4 +1302,13 @@
    return true;
  }
  
@@ -246,10 +246,10 @@ index c44cbfd..bd47ee3 100644
 +
  }  // namespace media
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.h b/media/capture/video/linux/v4l2_capture_delegate.h
-index 38d54b2..0c4ceab 100644
+index a21b869..01919c35 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.h
 +++ b/media/capture/video/linux/v4l2_capture_delegate.h
-@@ -120,6 +120,15 @@
+@@ -125,6 +125,15 @@
                       const base::Location& from_here,
                       const std::string& reason);
  
@@ -265,7 +265,7 @@ index 38d54b2..0c4ceab 100644
    const raw_ptr<V4L2CaptureDevice> v4l2_;
    const scoped_refptr<base::SingleThreadTaskRunner> v4l2_task_runner_;
    const VideoCaptureDeviceDescriptor device_descriptor_;
-@@ -148,6 +157,7 @@
+@@ -153,6 +162,7 @@
    class V4L2CaptureDelegateGpuHelper;
    friend class V4L2CaptureDelegateGpuHelper;
    bool use_gpu_buffer_;
@@ -274,7 +274,7 @@ index 38d54b2..0c4ceab 100644
  
    base::WeakPtrFactory<V4L2CaptureDelegate> weak_factory_{this};
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
-index b1e9b95..80c7710b 100644
+index 43fb048..2fa4062 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 @@ -4,7 +4,9 @@
@@ -382,7 +382,7 @@ index b1e9b95..80c7710b 100644
      const uint8_t* sample,
      size_t sample_size,
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
-index a627a85..b519d42 100644
+index 4f35db3..188c358 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 @@ -35,6 +35,16 @@
@@ -402,15 +402,6 @@ index a627a85..b519d42 100644
   private:
    int CovertCaptureDataToNV12(const uint8_t* sample,
                                size_t sample_size,
-@@ -62,7 +72,7 @@
-   bool IsNV12ConvertSupported(uint32_t fourcc);
- 
-  private:
--  V4L2CaptureDelegate* v4l2_delegate_;
-+  const raw_ptr<V4L2CaptureDelegate> v4l2_delegate_;
-   gpu::GpuMemoryBufferSupport gmb_support_;
-   std::vector<uint8_t> i420_buffer_;
- };
 diff --git a/media/capture/video/linux/v4l2_external_buffer_cache.cc b/media/capture/video/linux/v4l2_external_buffer_cache.cc
 new file mode 100644
 index 0000000..34c274c
@@ -512,7 +503,7 @@ index 0000000..34c274c
 +}  // namespace media
 diff --git a/media/capture/video/linux/v4l2_external_buffer_cache.h b/media/capture/video/linux/v4l2_external_buffer_cache.h
 new file mode 100644
-index 0000000..b7ef06e
+index 0000000..b3448ab
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_external_buffer_cache.h
 @@ -0,0 +1,65 @@
@@ -547,7 +538,7 @@ index 0000000..b7ef06e
 +        : device_fd(fd), buf_index(index) {}
 +    ScopedV4L2DeviceFD& device_fd;
 +    size_t buf_index;
-+    void* data = nullptr;
++    raw_ptr<void> data = nullptr;
 +    size_t len = 0;
 +  };
 +
@@ -568,7 +559,7 @@ index 0000000..b7ef06e
 +  static V4L2ExternalBufferCache instance_;
 +
 + private:
-+  V4L2CaptureDevice* v4l2_;
++  raw_ptr<V4L2CaptureDevice> v4l2_;
 +
 +  // Protects everything below it.
 +  mutable base::Lock lock_;
@@ -581,10 +572,9 @@ index 0000000..b7ef06e
 +}  // namespace media
 +
 +#endif  // !MEDIA_CAPTURE_VIDEO_LINUX_V4L2_EXTERNAL_BUFFER_CACHE_H_
-\ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_external_buffer_tracker.cc b/media/capture/video/linux/v4l2_external_buffer_tracker.cc
 new file mode 100644
-index 0000000..afd4c9b
+index 0000000..ac559218
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_external_buffer_tracker.cc
 @@ -0,0 +1,73 @@
@@ -661,10 +651,9 @@ index 0000000..afd4c9b
 +  }
 +}
 +}  // namespace media
-\ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_external_buffer_tracker.h b/media/capture/video/linux/v4l2_external_buffer_tracker.h
 new file mode 100644
-index 0000000..26f3624
+index 0000000..59d834f
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_external_buffer_tracker.h
 @@ -0,0 +1,41 @@
@@ -709,7 +698,6 @@ index 0000000..26f3624
 +}  // namespace media
 +
 +#endif  // !MEDIA_CAPTURE_VIDEO_LINUX_V4L2_EXTERNAL_BUFFER_TRACKER_H_
-\ No newline at end of file
 diff --git a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
 index 331336d..1530606 100644
 --- a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
