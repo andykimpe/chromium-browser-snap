@@ -1,0 +1,33 @@
+From 8cd198e4e280faeda02b2cafe9eb876f007d4060 Mon Sep 17 00:00:00 2001
+From: Yaowei Zhou <yaowei.zhou@intel.com>
+Date: Thu, 20 Apr 2023 14:29:16 +0800
+Subject: [PATCH] Enable the VDAVideoDecoder on the wayland
+
+Bug: N/A
+Change-Id: I3f2629e274cbe26034964e39b4679fe083945131
+---
+
+diff --git a/media/gpu/vaapi/vaapi_picture_factory.cc b/media/gpu/vaapi/vaapi_picture_factory.cc
+index 5dadd7c..2499d2f 100644
+--- a/media/gpu/vaapi/vaapi_picture_factory.cc
++++ b/media/gpu/vaapi/vaapi_picture_factory.cc
+@@ -45,14 +45,14 @@
+   vaapi_impl_pairs_.insert(
+       std::make_pair(gl::kGLImplementationEGLGLES2,
+                      VaapiPictureFactory::kVaapiImplementationDrm));
+-#if BUILDFLAG(USE_VAAPI_X11)
+-  vaapi_impl_pairs_.insert(
+-      std::make_pair(gl::kGLImplementationEGLANGLE,
+-                     VaapiPictureFactory::kVaapiImplementationAngle));
+-#elif BUILDFLAG(IS_OZONE)
++#if BUILDFLAG(IS_OZONE)
+   vaapi_impl_pairs_.insert(
+       std::make_pair(gl::kGLImplementationEGLANGLE,
+                      VaapiPictureFactory::kVaapiImplementationDrm));
++#elif BUILDFLAG(USE_VAAPI_X11)
++  vaapi_impl_pairs_.insert(
++      std::make_pair(gl::kGLImplementationEGLANGLE,
++                     VaapiPictureFactory::kVaapiImplementationAngle));
+ #endif
+ 
+   DeterminePictureCreationAndDownloadingMechanism();

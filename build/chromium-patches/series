@@ -1,11 +1,11 @@
 optimization/internal:include-libva-config.patch
 optimization/internal:fix-dri-loading.diff
-optimization/topic-intel/5df4976:dynamic-check-nv12.diff
-optimization/topic-intel/a45401f:vaapi-flag-ozone-wayland.diff
-optimization/topic-intel/ad27bcd:one-copy.diff
-optimization/topic-intel/bb6aa463:linux-unstable-deb.diff
-optimization/topic-intel/8c5c7f51:zero-copy.diff
-optimization/topic-intel/b4e98991:enable-vda-video-encoder-on-wayland.diff
+optimization/topic-intel/faf232f:dynamic-check-nv12.diff
+optimization/topic-intel/4ed5da1:vaapi-flag-ozone-wayland.diff
+optimization/topic-intel/1937d60:one-copy.diff
+optimization/topic-intel/22fe045d:linux-unstable-deb.diff
+optimization/topic-intel/7be5b21:zero-copy.diff
+optimization/topic-intel/8cd198e4:enable-vda-video-encoder-on-wayland.diff
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch

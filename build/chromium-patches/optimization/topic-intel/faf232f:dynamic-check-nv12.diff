@@ -1,14 +1,14 @@
-From 5df4976fd3be9e20d6bad09d23e197ca393b573b Mon Sep 17 00:00:00 2001
+From faf232fb0b19219e5f112f26d50714f6c575b93f Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Thu, 02 Feb 2023 14:22:34 +0800
-Subject: [PATCH] Dynamic fallback to system memory when failed to allocate NV12 GPU memory buffer
+Date: Wed, 19 Apr 2023 16:52:32 +0800
+Subject: [PATCH] Dynamic fallback to system memory when failed to allocate NV12 buffer
 
 Bug: N/A
-Change-Id: I8ba75b3981ebb890662d2a3b3981c0578d0f6ec7
+Change-Id: I88b553ff4bdc1ea59aaa3cc47948ca6648c87d0c
 ---
 
 diff --git a/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc b/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
-index 668fcf8..5aa1fa7c 100644
+index b3e46e9..e175b29 100644
 --- a/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
 +++ b/content/browser/gpu/gpu_memory_buffer_manager_singleton.cc
 @@ -21,6 +21,10 @@
@@ -22,11 +22,12 @@ index 668fcf8..5aa1fa7c 100644
  namespace content {
  namespace {
  
-@@ -52,6 +56,23 @@
- #endif
- }
+@@ -76,8 +80,23 @@
  
-+#if BUILDFLAG(IS_LINUX)
+   return supported;
+ }
+-#endif  // BUILDFLAG(IS_LINUX)
+ 
 +// Dynamic check NV12 format support as supported format inconsistent in
 +// system and chromium miniGBM
 +void DynamicUpdateVideoCaptureUseGpuMemoryBuffer(bool support_nv12) {
@@ -46,7 +47,7 @@ index 668fcf8..5aa1fa7c 100644
  }  // namespace
  
  GpuMemoryBufferManagerSingleton::GpuMemoryBufferManagerSingleton(int client_id)
-@@ -79,6 +100,12 @@
+@@ -105,6 +124,12 @@
  }
  
  void GpuMemoryBufferManagerSingleton::OnGpuExtraInfoUpdate() {
@@ -58,7 +59,7 @@ index 668fcf8..5aa1fa7c 100644
 +
  #if defined(USE_OZONE_PLATFORM_X11)
    // X11 fetches buffer formats on gpu and passes them via gpu extra info.
-   if (!ShouldSetBufferFormatsFromGpuExtraInfo())
+   if (ShouldSetBufferFormatsFromGpuExtraInfo()) {
 diff --git a/ui/gfx/gpu_extra_info.h b/ui/gfx/gpu_extra_info.h
 index e8fa594..d1edbfea 100644
 --- a/ui/gfx/gpu_extra_info.h
@@ -75,10 +76,10 @@ index e8fa594..d1edbfea 100644
  
  }  // namespace gfx
 diff --git a/ui/gfx/mojom/BUILD.gn b/ui/gfx/mojom/BUILD.gn
-index 055d205..0fec929 100644
+index b511389..07063be 100644
 --- a/ui/gfx/mojom/BUILD.gn
 +++ b/ui/gfx/mojom/BUILD.gn
-@@ -49,7 +49,9 @@
+@@ -51,7 +51,9 @@
    if (ozone_platform_x11) {
      enabled_features += [ "enable_x11_params" ]
    }
@@ -171,7 +172,7 @@ index b3e92d8..dc982f3 100644
  bool WaylandGLEGLUtility::X11DoesVisualHaveAlphaForTest() const {
    return false;
 diff --git a/ui/ozone/platform/x11/gl_egl_utility_x11.cc b/ui/ozone/platform/x11/gl_egl_utility_x11.cc
-index 58c7fe6..0eb5608 100644
+index 58c7fe6..06b8ad7 100644
 --- a/ui/ozone/platform/x11/gl_egl_utility_x11.cc
 +++ b/ui/ozone/platform/x11/gl_egl_utility_x11.cc
 @@ -12,6 +12,10 @@
@@ -191,7 +192,7 @@ index 58c7fe6..0eb5608 100644
    }
 +#if BUILDFLAG(IS_LINUX)
 +  gpu_extra_info.gpu_memory_buffer_support_NV12 = base::ranges::any_of(
-+      ui::GpuMemoryBufferSupportX11::GetInstance()->supported_configs(),
++      gpu_extra_info.gpu_memory_buffer_support_x11,
 +      [](gfx::BufferUsageAndFormat other) {
 +        return other.format == gfx::BufferFormat::YUV_420_BIPLANAR &&
 +               other.usage == gfx::BufferUsage::GPU_READ_CPU_READ_WRITE;
