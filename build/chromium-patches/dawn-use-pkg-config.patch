@@ -28,14 +28,14 @@ Author: Olivier Tilloy <olivier.tilloy@canonical.com>
    }
  
    # Only win32 app needs to link with user32.lib
-@@ -764,6 +772,10 @@ dawn_component("native") {
-     ":vulkan_rpath",
-   ]
- 
-+  if (dawn_use_x11) {
-+    configs += [ ":x11-xcb" ]
-+  }
-+
-   if (dawn_enable_d3d12) {
-     sources += [ "d3d12/D3D12Backend.cpp" ]
-   }
+--- a/third_party/dawn/src/dawn/common/BUILD.gn
++++ b/third_party/dawn/src/dawn/common/BUILD.gn
+@@ -276,7 +283,7 @@
+     # Note that while this doesn't make `internal_config` a public config of
+     # Dawn libraries because `:common` is only used as a private deps of Dawn
+     # targets, so `internal_config` doesn't leak out of Dawn.
+-    public_configs = [ ":internal_config" ]
++    public_configs = [ ":internal_config", "../native:x11-xcb" ]
+     deps = [
+       "${dawn_root}/include/dawn:cpp_headers",
+       "${dawn_root}/include/dawn:headers",
