@@ -94,9 +94,6 @@ plugs:
   etc-chromium-browser-policies:
     interface: system-files
     read: [/etc/chromium-browser/policies]
-  va-driver-non-free:
-    interface: content
-    target: $SNAP/va-driver-non-free
 
 layout:
   /usr/lib/man-db:
@@ -141,6 +138,7 @@ parts:
       - libcap-dev
       - libcups2-dev
       - libcurl4-openssl-dev
+      - libevdev-dev
       - libffi-dev
       - libicu-dev
       - libkrb5-dev

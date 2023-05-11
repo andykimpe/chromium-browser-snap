@@ -1,6 +1,12 @@
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 From 1937d6067bf5b24728b64e5f09f07c00dc348073 Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
 Date: Thu, 20 Apr 2023 13:31:34 +0800
+========
+From bcb59c154a4658e2f48eeecde7e8741352547104 Mon Sep 17 00:00:00 2001
+From: Yaowei Zhou <yaowei.zhou@intel.com>
+Date: Thu, 04 May 2023 10:09:58 +0800
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
 Subject: [PATCH] [Duplicate] Add the one-copy for Linux* video capture
 
 Duplicate the "Add one-copy for Linux* video capture" before upstream
@@ -11,6 +17,7 @@ Change-Id: Idfe932f495dd717954b596ef5c49981de510e382
 ---
 
 diff --git a/content/browser/utility_process_host.cc b/content/browser/utility_process_host.cc
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 index d2bd22ce..6e29181 100644
 --- a/content/browser/utility_process_host.cc
 +++ b/content/browser/utility_process_host.cc
@@ -43,6 +50,21 @@ index d2bd22ce..6e29181 100644
  #endif  // BUILDFLAG(IS_LINUX)
  
      std::unique_ptr<UtilitySandboxedProcessLauncherDelegate> delegate =
+========
+index 475614d..ea5de61 100644
+--- a/content/browser/utility_process_host.cc
++++ b/content/browser/utility_process_host.cc
+@@ -418,8 +418,7 @@
+       file_data_->files_to_preload[kNetworkContextParentDirsDescriptor] =
+           PassNetworkContextParentDirs(std::move(network_context_parent_dirs));
+     }
+-#endif  // BUILDFLAG(IS_LINUX)
+-
++#endif
+ #if BUILDFLAG(IS_LINUX)
+     if (metrics_name_ == video_capture::mojom::VideoCaptureService::Name_) {
+       if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
 diff --git a/media/capture/BUILD.gn b/media/capture/BUILD.gn
 index b56936b..3d88a96 100644
 --- a/media/capture/BUILD.gn
@@ -66,7 +88,11 @@ index b56936b..3d88a96 100644
      sources += [
        "video/chromeos/camera_3a_controller.cc",
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.cc b/media/capture/video/linux/v4l2_capture_delegate.cc
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 index 864111f..c44cbfd 100644
+========
+index 8b9c581..bbe8d2f4 100644
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
 --- a/media/capture/video/linux/v4l2_capture_delegate.cc
 +++ b/media/capture/video/linux/v4l2_capture_delegate.cc
 @@ -22,8 +22,10 @@
@@ -80,7 +106,11 @@ index 864111f..c44cbfd 100644
  #include "media/capture/video/linux/video_capture_device_linux.h"
  
  using media::mojom::MeteringMode;
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 @@ -265,7 +267,12 @@
+========
+@@ -310,7 +312,12 @@
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
        device_fd_(v4l2),
        is_capturing_(false),
        timeout_count_(0),
@@ -94,7 +124,11 @@ index 864111f..c44cbfd 100644
  
  void V4L2CaptureDelegate::AllocateAndStart(
      int width,
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 @@ -383,7 +390,6 @@
+========
+@@ -428,7 +435,6 @@
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
                                       video_fmt_.fmt.pix.height);
    capture_format_.frame_rate = frame_rate;
    capture_format_.pixel_format = pixel_format;
@@ -102,7 +136,11 @@ index 864111f..c44cbfd 100644
    if (!StartStream())
      return;
  
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 @@ -1110,10 +1116,17 @@
+========
+@@ -1126,10 +1132,17 @@
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
        // matrix = v4l2_format->fmt.pix.ycbcr_enc;
        // transfer = v4l2_format->fmt.pix.xfer_func;
        // See http://crbug.com/959919.
@@ -125,10 +163,17 @@ index 864111f..c44cbfd 100644
  
      while (!take_photo_callbacks_.empty()) {
 diff --git a/media/capture/video/linux/v4l2_capture_delegate.h b/media/capture/video/linux/v4l2_capture_delegate.h
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 index c9be3d0..38d54b2 100644
 --- a/media/capture/video/linux/v4l2_capture_delegate.h
 +++ b/media/capture/video/linux/v4l2_capture_delegate.h
 @@ -144,6 +144,12 @@
+========
+index e41d45fa..a21b869 100644
+--- a/media/capture/video/linux/v4l2_capture_delegate.h
++++ b/media/capture/video/linux/v4l2_capture_delegate.h
+@@ -149,6 +149,12 @@
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
    // Clockwise rotation in degrees. This value should be 0, 90, 180, or 270.
    int rotation_;
  
@@ -143,7 +188,11 @@ index c9be3d0..38d54b2 100644
  
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 new file mode 100644
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 index 0000000..b1e9b95
+========
+index 0000000..43fb048
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.cc
 @@ -0,0 +1,279 @@
@@ -426,10 +475,13 @@ index 0000000..b1e9b95
 +}
 +
 +}  // namespace media
-\ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 new file mode 100644
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 index 0000000..a627a85
+========
+index 0000000..4f35db3
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_capture_delegate_gpu_helper.h
 @@ -0,0 +1,72 @@
@@ -497,7 +549,7 @@ index 0000000..a627a85
 +  bool IsNV12ConvertSupported(uint32_t fourcc);
 +
 + private:
-+  V4L2CaptureDelegate* v4l2_delegate_;
++  const raw_ptr<V4L2CaptureDelegate> v4l2_delegate_;
 +  gpu::GpuMemoryBufferSupport gmb_support_;
 +  std::vector<uint8_t> i420_buffer_;
 +};
@@ -505,7 +557,6 @@ index 0000000..a627a85
 +}  // namespace media
 +
 +#endif  // !MEDIA_CAPTURE_VIDEO_LINUX_V4L2_CAPTURE_DELEGATE_GPU_HELPER_H_
-\ No newline at end of file
 diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc b/media/capture/video/linux/v4l2_gpu_memory_buffer_factory.cc
 new file mode 100644
 index 0000000..96eb79c
@@ -717,7 +768,11 @@ index 0000000..6c65bb4
 +}  // namespace media
 diff --git a/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h
 new file mode 100644
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 index 0000000..d6e01dcf
+========
+index 0000000..997526d
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
 --- /dev/null
 +++ b/media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h
 @@ -0,0 +1,41 @@
@@ -762,7 +817,6 @@ index 0000000..d6e01dcf
 +}  // namespace media
 +
 +#endif  // MEDIA_CAPTURE_VIDEO_LINUX_V4L2_GPU_MEMORY_BUFFER_TRACKER_H_
-\ No newline at end of file
 diff --git a/media/capture/video/video_capture_buffer_pool_util.cc b/media/capture/video/video_capture_buffer_pool_util.cc
 index 0af0a15..5556af33 100644
 --- a/media/capture/video/video_capture_buffer_pool_util.cc
@@ -802,6 +856,7 @@ index 1756e1d..331336d 100644
  #else
        return nullptr;
  #endif
+<<<<<<<< HEAD:build/chromium-patches/optimization/topic-intel/1937d60:one-copy.diff
 diff --git a/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc b/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
 index 1a826c9..a7832df 100644
 --- a/third_party/blink/renderer/platform/video_capture/video_capture_impl.cc
@@ -814,6 +869,8 @@ index 1a826c9..a7832df 100644
    for (size_t plane = 0; plane < planes.size(); ++plane) {
      if (should_recreate_shared_image ||
          buffer_context_->gmb_resources()->mailboxes[plane].IsZero()) {
+========
+>>>>>>>> hwacc-dev:build/chromium-patches/optimization/topic-intel/bcb59c1:one-copy.diff
 diff --git a/ui/ozone/public/ozone_platform.cc b/ui/ozone/public/ozone_platform.cc
 index 6c4ce21..17c100c 100644
 --- a/ui/ozone/public/ozone_platform.cc
