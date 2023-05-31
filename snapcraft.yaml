@@ -5,14 +5,14 @@ description: |
  An open-source browser project that aims to build a safer, faster, and more
  stable way for all Internet users to experience the web.
 confinement: strict
-base: core22
+base: core20
 assumes:
   - snapd2.55 # >=2.55 needed for the cups interface
 compression: lzo
 
 apps:
   chromium:
-    extensions: [gnome]
+    extensions: [gnome-3-38]
     command: bin/chromium.launcher
     desktop: bin/chromium.desktop
     common-id: chromium-browser.desktop
@@ -45,7 +45,7 @@ apps:
     slots:
       - mpris
   chromedriver:
-    extensions: [gnome]
+    extensions: [gnome-3-38]
     command: usr/lib/chromium-browser/chromedriver
     plugs:
       - network-bind
