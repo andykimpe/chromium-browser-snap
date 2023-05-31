@@ -121,8 +121,8 @@ parts:
 
   chromium:
     plugin: nil
-    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-113.0.5672.63.tar.xz
-    source-checksum: sha512/b99ce267ecfaf497b99262a243f43eab9b170563227b407ef17dd85f8f6d892d9c264df83b166a52683156ee33e8504f9fcf09db68c6edb29b6588d870833711
+    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-114.0.5735.90.tar.xz
+    source-checksum: sha512/7a5eb6bbf0e25f1bbdd63dd860ba96da3052b3967d04364b60265ee588ffcd7b9e90ea93009e52f3228128950988327a087447c6d12db61e66f518850097c8af
     after:
       - chromium-build
       - launcher
@@ -141,6 +141,7 @@ parts:
       - libcap-dev
       - libcups2-dev
       - libcurl4-openssl-dev
+      - libevdev-dev
       - libffi-dev
       - libicu-dev
       - libkrb5-dev
