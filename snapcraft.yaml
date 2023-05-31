@@ -377,10 +377,19 @@ parts:
     stage:
       - usr/lib/*/dri/*_video.so
 
+  # PipeWire
   pipewire:
-    plugin: nil
-    build-packages: [libpipewire-0.3-dev]
-    stage-packages: [pipewire]
+    source: https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/0.3.32/pipewire-0.3.32.tar.gz
+    plugin: meson
+    meson-parameters:
+      - --prefix=/usr
+      - --buildtype=release
+      - --strip
+      - -Dalsa=disabled
+      - -Dpipewire-alsa=disabled
+      - -Djack=disabled
+      - -Dpipewire-jack=disabled
+      - -Dsession-managers=[]
     prime:
       - usr/lib/*/pipewire-*
       - usr/lib/*/spa-*
