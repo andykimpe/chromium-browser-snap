@@ -20,9 +20,9 @@ apps:
       CHROME_DESKTOP: chromium.desktop
       CHROME_CONFIG_HOME: $SNAP_USER_COMMON
       GTK_USE_PORTAL: 1
-      SPA_PLUGIN_DIR: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/spa-0.2
+      SPA_PLUGIN_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/spa-0.2
       PIPEWIRE_CONFIG_NAME: $SNAP/usr/share/pipewire/pipewire.conf
-      PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pipewire-0.3
+      PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pipewire-0.3
     plugs:
       - audio-playback
       - audio-record
@@ -83,8 +83,8 @@ apps:
     environment:
       CHROME_CONFIG_HOME: $SNAP_USER_COMMON
       PIPEWIRE_CONFIG_NAME: $SNAP/usr/share/pipewire/pipewire.conf
-      PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pipewire-0.3
-      SPA_PLUGIN_DIR: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/spa-0.2
+      PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pipewire-0.3
+      SPA_PLUGIN_DIR: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/spa-0.2
     plugs:
       - audio-playback
       - audio-record
@@ -199,13 +199,13 @@ parts:
       - libxss1
     override-pull: |
       set -eux
-      craftctl default
+      snapcraftctl pull
       . chrome/VERSION
-      craftctl set version="$MAJOR.$MINOR.$BUILD.$PATCH"
+      snapcraftctl set-version "$MAJOR.$MINOR.$BUILD.$PATCH"
     override-build: |
       set -eux
 
-      QUILT_PATCHES=$CRAFT_STAGE/build/chromium-patches QUILT_PC=.pc.chromium-patches quilt push -a
+      QUILT_PATCHES=$SNAPCRAFT_STAGE/build/chromium-patches QUILT_PC=.pc.chromium-patches quilt push -a
 
       # Fetch the dirmd executable from Google's servers
       # (it is not included in the source tarball).
@@ -217,15 +217,15 @@ parts:
 
       # Pre-built binaries are provided for clang on x86-64,
       # for all other architectures they have to be built from source.
-      if [ $CRAFT_TARGET_ARCH = "amd64" ]; then
+      if [ $SNAPCRAFT_TARGET_ARCH = "amd64" ]; then
         python3 tools/clang/scripts/update.py
       else
         # Fetch and build clang from source.
         python3 tools/clang/scripts/build.py --skip-build --without-android --without-fuchsia
         # --with-ml-inliner-model= to avoid depending on vpython3,
         # https://bugs.chromium.org/p/chromium/issues/detail?id=1368071
-        LDFLAGS="-Wl,-rpath-link=/snap/gnome-42-2204-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET/" \
-        LD_LIBRARY_PATH="/snap/gnome-42-2204-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH" \
+        LDFLAGS="-Wl,-rpath-link=/snap/gnome-42-2204-sdk/current/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/" \
+        LD_LIBRARY_PATH="/snap/gnome-42-2204-sdk/current/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH" \
         python3 tools/clang/scripts/build.py --skip-checkout --bootstrap --disable-asserts --pgo --without-android --without-fuchsia --gcc-toolchain=/usr --use-system-cmake --with-ml-inliner-model=
       fi
 
@@ -238,8 +238,8 @@ parts:
       # Build chromium
       OUT=out/Release
       mkdir -p $OUT
-      cp $CRAFT_STAGE/build/args.gn $OUT/
-      if [ $CRAFT_TARGET_ARCH = "armhf" ]; then
+      cp $SNAPCRAFT_STAGE/build/args.gn $OUT/
+      if [ $SNAPCRAFT_TARGET_ARCH = "armhf" ]; then
         # Do not use lld (the LLVM linker) on 32-bits architectures
         # (armhf) because it OOMs when linking the chrome binary
         echo "use_lld = false" >> $OUT/args.gn
@@ -255,10 +255,10 @@ parts:
       # Strip debug symbols off the chrome binary
       eu-strip $OUT/chrome
 
-      # Install to $CRAFT_PART_INSTALL
-      mkdir -p $CRAFT_PART_INSTALL
-      cp chrome/app/theme/chromium/linux/product_logo_256.png $CRAFT_PART_INSTALL/chromium.png
-      T=$CRAFT_PART_INSTALL/usr/lib/chromium-browser
+      # Install to $SNAPCRAFT_PART_INSTALL
+      mkdir -p $SNAPCRAFT_PART_INSTALL
+      cp chrome/app/theme/chromium/linux/product_logo_256.png $SNAPCRAFT_PART_INSTALL/chromium.png
+      T=$SNAPCRAFT_PART_INSTALL/usr/lib/chromium-browser
       mkdir -p $T
       cd $OUT
       cp chrome chromedriver chrome_crashpad_handler \
@@ -279,18 +279,18 @@ parts:
 
       # Fix setuid bits on the sandbox executable
       # (ref: https://forum.snapcraft.io/t/call-for-testing-chromium-snap/1714/16)
-      chmod 4555 $CRAFT_PART_INSTALL/usr/lib/chromium-browser/chrome-sandbox
+      chmod 4555 $SNAPCRAFT_PART_INSTALL/usr/lib/chromium-browser/chrome-sandbox
 
       # Generate and install the man page (see the "manpage" part)
-      mkdir -p $CRAFT_PART_INSTALL/man1
+      mkdir -p $SNAPCRAFT_PART_INSTALL/man1
       sed \
           -e "s/@@PACKAGE@@/chromium/g" \
           -e "s/@@MENUNAME@@/chromium/g" \
           -e "s:\$HOME/.config:\$SNAP_USER_DATA/.config:g" \
           -e "s:\$HOME/.cache:\$SNAP_USER_COMMON/.cache:g" \
-          $CRAFT_PART_SRC/chrome/app/resources/manpage.1.in \
-          > $CRAFT_PART_INSTALL/man1/chrome.1
-      gzip -9n $CRAFT_PART_INSTALL/man1/chrome.1
+          $SNAPCRAFT_PART_SRC/chrome/app/resources/manpage.1.in \
+          > $SNAPCRAFT_PART_INSTALL/man1/chrome.1
+      gzip -9n $SNAPCRAFT_PART_INSTALL/man1/chrome.1
     stage:
       - -usr/lib/*/libsecret-*
     prime:
