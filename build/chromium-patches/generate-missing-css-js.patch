@@ -1,0 +1,31 @@
+Description: Generate missing css.js files, which (for some reason only) hit
+ ARMv7l.
+Author: Nathan Pratta Teodosio <nathan.teodosio@canonical.com>
+Forwarded: not-yet
+
+--- a/ui/webui/resources/cr_components/history_clusters/BUILD.gn
++++ b/ui/webui/resources/cr_components/history_clusters/BUILD.gn
+@@ -3,6 +3,7 @@
+ 
+ import("//mojo/public/tools/bindings/mojom.gni")
+ import("//ui/webui/resources/tools/build_webui.gni")
++import("//tools/polymer/css_to_wrapper.gni")
+ 
+ assert(!is_android)
+ 
+@@ -69,3 +70,15 @@
+ 
+   enable_source_maps = enable_webui_inline_sourcemaps
+ }
++css_files = [
++  "history_clusters_shared_style.css",
++  "shared_vars.css",
++]
++css_wrapper_filess = []
++foreach(f, css_files) {
++  css_wrapper_filess += [ f + ".js" ]
++}
++css_to_wrapper("css_wrapper_filess") {
++  in_files = css_files
++  use_js = true
++}
