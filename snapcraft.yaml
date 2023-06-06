@@ -223,6 +223,9 @@ parts:
         echo "use_thin_lto = false" >> $OUT/args.gn
         # Do not build with NEON on armhf (https://launchpad.net/bugs/1884856)
         echo "arm_use_neon = false" >> $OUT/args.gn
+        # Workaround no such file: gen/ui/webui/resources/tsc/cr_components/
+        # history_clusters/history_clusters_shared_style.css.js
+        echo "optimize_webui = false" >> $OUT/args.gn
       fi
 
       # Temporary workaround to ensure that version 2.4.107 of libdrm from
