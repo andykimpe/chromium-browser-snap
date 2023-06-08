@@ -214,8 +214,6 @@ parts:
       # Get the Node.js binaries needed to build chromium's WebUI
       third_party/node/update_node_binaries
 
-      tools/rust/build_rust.py
-
       # Generate qt_shim_moc.cc with our moc or it fails to build with
       # Focal's version of Qt.
       moc ui/qt/qt_shim.h > ui/qt/qt_shim_moc.cc
