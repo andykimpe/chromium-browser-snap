@@ -3,12 +3,32 @@ in an attempt to reduce the memory pressure on the Launchpad builders,
 which consistently result in an OOM situation where the linker is killed
 and the build fails.
 Author: Olivier Tilloy <olivier.tilloy@canonical.com>
+Description: When building on armhf, don't use threads to link.
+Author: Nathan Teodosio <nathan.teodosio@canonical.com>
 Bug-Ubuntu: https://launchpad.net/bugs/1978989
 Forwarded: not-needed
 
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -504,6 +504,10 @@ config("compiler") {
+@@ -513,15 +513,17 @@ config("compiler") {
+         ldflags += [ "-B$gold_path" ]
+       }
+ 
++      if (is_linux && target_cpu != "arm") {
+       ldflags += [
+         # Experimentation found that using four linking threads
+         # saved ~20% of link time.
+         # https://groups.google.com/a/chromium.org/group/chromium-dev/browse_thread/thread/281527606915bb36
+         # Only apply this to the target linker, since the host
+         # linker might not be gold, but isn't used much anyway.
+         "-Wl,--threads",
+         "-Wl,--thread-count=4",
+       ]
++      }
+     }
+ 
+     # TODO(thestig): Make this flag work with GN.
+@@ -540,6 +542,10 @@ config("compiler") {
      # error.  "-lpthread" is added in //build/config:default_libs.
    }
  
@@ -19,3 +39,6 @@ Forwarded: not-needed
    # Clang-specific compiler flags setup.
    # ------------------------------------
    if (is_clang) {
+
+        ldflags += [ "-B$gold_path" ]
+      }
