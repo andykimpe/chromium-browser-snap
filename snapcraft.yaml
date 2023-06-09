@@ -397,7 +397,9 @@ parts:
     override-build: |
       # Strip iHD driver.
       snapcraftctl build
-      strip $SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri/iHD_drv_video.so
+      find / -name iHD_drv_video.so -print -a -exec strip {} \;
+      #XXX this couldn't be found, is it installed elsewhere? The above statement will tell
+      #strip $SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri/iHD_drv_video.so
     prime:
       - usr/**/*_video.so
       - usr/**/libigfxcmrt.so*
