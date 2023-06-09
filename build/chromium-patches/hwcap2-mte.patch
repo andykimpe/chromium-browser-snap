@@ -1,0 +1,20 @@
+Description: Fix use of undeclared identifier 'HWCAP2_MTE'.
+ .
+ "When CONFIG_ARM64_MTE is selected and Memory Tagging Extension is supported by
+  the hardware, the kernel advertises the feature to userspace via HWCAP2_MTE."
+ .
+ C.f. https://www.kernel.org/doc/html/latest/arm64/memory-tagging-extension.html
+ .
+Author: Nathan Pratta Teodosio <nathan.teodosio@canonical.com>
+Forwarded: https://chromium-review.googlesource.com/c/chromium/src/+/4610745
+
+--- a/base/allocator/partition_allocator/tagging.cc
++++ b/base/allocator/partition_allocator/tagging.cc
+@@ -30,6 +30,7 @@
+ #endif
+ 
+ #ifndef HAS_PR_MTE_MACROS
++#define HWCAP2_MTE (1<<18)
+ #define PR_MTE_TCF_SHIFT 1
+ #define PR_MTE_TCF_NONE (0UL << PR_MTE_TCF_SHIFT)
+ #define PR_MTE_TCF_SYNC (1UL << PR_MTE_TCF_SHIFT)
