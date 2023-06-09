@@ -26,3 +26,4 @@ use-system-wide-eu-strip.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
 include-libva-config.patch
+hwcap2-mte.patch
