@@ -400,6 +400,8 @@ parts:
       find / -name iHD_drv_video.so -print -a -exec strip {} \;
       #XXX this couldn't be found, is it installed elsewhere? The above statement will tell
       #strip $SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri/iHD_drv_video.so
+    organize:
+      snap/gnome-42-2204-sdk/current/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri/iHD_drv_video.so: usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri/iHD_drv_video.so
     prime:
       - usr/**/*_video.so
       - usr/**/libigfxcmrt.so*
