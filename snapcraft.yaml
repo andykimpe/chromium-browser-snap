@@ -231,8 +231,6 @@ parts:
         python3 tools/clang/scripts/build.py --skip-build --without-android --without-fuchsia
         # --with-ml-inliner-model= to avoid depending on vpython3,
         # https://bugs.chromium.org/p/chromium/issues/detail?id=1368071
-        LDFLAGS="-Wl,-rpath-link=/snap/gnome-42-2204-sdk/current/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/" \
-        LD_LIBRARY_PATH="/snap/gnome-42-2204-sdk/current/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH" \
         python3 tools/clang/scripts/build.py --skip-checkout --bootstrap --disable-asserts --pgo --without-android --without-fuchsia --gcc-toolchain=/usr --use-system-cmake --with-ml-inliner-model=
       fi
 
