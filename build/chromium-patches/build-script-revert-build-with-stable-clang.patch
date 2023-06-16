@@ -1,20 +1,10 @@
-Description: Partially revert https://chromium.googlesource.com/chromium/src/+/029d4b6 because we're not building from a git checkout, so DownloadPinnedClang() cannot work
+Description: We're not building from a git checkout, so DownloadPinnedClang() cannot work.
 Author: Olivier Tilloy <olivier.tilloy@canonical.com>
+Author: Nathan Pratta Teodosio <nathan.teodosio@canonical.com>
 Forwarded: not-needed
 
 --- a/tools/clang/scripts/build.py
 +++ b/tools/clang/scripts/build.py
-@@ -661,10 +661,6 @@ def main():
-       '-DLLVM_INCLUDE_GO_TESTS=OFF',
-       # See crbug.com/1126219: Use native symbolizer instead of DIA
-       '-DLLVM_ENABLE_DIA_SDK=OFF',
--      # Link all binaries with lld. Effectively passes -fuse-ld=lld to the
--      # compiler driver. On Windows, cmake calls the linker directly, so there
--      # the same is achieved by passing -DCMAKE_LINKER=$lld below.
--      '-DLLVM_ENABLE_LLD=ON',
-       # The default value differs per platform, force it off everywhere.
-       '-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF',
-       # Don't use curl.
 @@ -696,7 +696,6 @@ def main():
      cc = args.host_cc
      cxx = args.host_cxx
@@ -29,23 +19,8 @@ Forwarded: not-needed
      else:
 -      cc = os.path.join(PINNED_CLANG_DIR, 'bin', 'clang')
 -      cxx = os.path.join(PINNED_CLANG_DIR, 'bin', 'clang++')
-+      cc = os.path.join(args.gcc_toolchain, 'bin', 'gcc')
-+      cxx = os.path.join(args.gcc_toolchain, 'bin', 'g++')
++      cc = '/usr/bin/gcc'
++      cxx = '/usr/bin/g++'
  
      if sys.platform.startswith('linux'):
        MaybeDownloadHostGcc(args)
-@@ -863,6 +862,14 @@ def main():
-     else:
-       cc = os.path.join(LLVM_BOOTSTRAP_INSTALL_DIR, 'bin', 'clang')
-       cxx = os.path.join(LLVM_BOOTSTRAP_INSTALL_DIR, 'bin', 'clang++')
-+    if sys.platform.startswith('linux'):
-+      base_cmake_args.append('-DLLVM_ENABLE_LLD=ON')
-+
-+    if args.gcc_toolchain:
-+      # Tell the bootstrap compiler where to find the standard library headers
-+      # and shared object files.
-+      cflags.append('--gcc-toolchain=' + args.gcc_toolchain)
-+      cxxflags.append('--gcc-toolchain=' + args.gcc_toolchain)
- 
-     print('Bootstrap compiler installed.')
- 
