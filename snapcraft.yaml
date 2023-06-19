@@ -72,7 +72,7 @@ apps:
     slots:
       - mpris
   daemon:
-    extensions: [gnome-3-38]
+    extensions: [gnome]
     daemon: simple
     command: bin/chromium.launcher
     command-chain:
