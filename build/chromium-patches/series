@@ -1,3 +1,4 @@
+VAEncSequenceParameterBufferAV1.patch
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
@@ -26,7 +27,6 @@ swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
-include-libva-config.patch
 generate-missing-css-js.patch
 hwcap2-mte.patch
 fix-nss-include.patch
