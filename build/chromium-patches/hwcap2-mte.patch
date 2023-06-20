@@ -6,7 +6,7 @@ Description: Fix use of undeclared identifier 'HWCAP2_MTE'.
  C.f. https://www.kernel.org/doc/html/latest/arm64/memory-tagging-extension.html
  .
 Author: Nathan Pratta Teodosio <nathan.teodosio@canonical.com>
-Forwarded: not-yet
+Forwarded: https://chromium-review.googlesource.com/c/chromium/src/+/4610745
 
 --- a/base/allocator/partition_allocator/tagging.cc
 +++ b/base/allocator/partition_allocator/tagging.cc
