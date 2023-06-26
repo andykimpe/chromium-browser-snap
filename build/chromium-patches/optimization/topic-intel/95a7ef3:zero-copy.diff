@@ -1,6 +1,6 @@
-From d417bb1e326a3b0a9d148a9848464bf6670c5cc4 Mon Sep 17 00:00:00 2001
+From 95a7ef3f46e330510edb3dcddd9439e798020dea Mon Sep 17 00:00:00 2001
 From: Yaowei Zhou <yaowei.zhou@intel.com>
-Date: Mon, 26 Jun 2023 12:21:28 +0800
+Date: Thu, 04 May 2023 10:44:39 +0800
 Subject: [PATCH] Add the zero-copy for Linux* video capture
 
 Add the zero-copy supporting for video capture pipeline.
@@ -10,10 +10,10 @@ Change-Id: Ic9bd08a94b79731750529b35a99f700fcc815e6c
 ---
 
 diff --git a/media/capture/BUILD.gn b/media/capture/BUILD.gn
-index 9d63fadc..deab2af 100644
+index 3d88a96..1765c49 100644
 --- a/media/capture/BUILD.gn
 +++ b/media/capture/BUILD.gn
-@@ -274,6 +274,10 @@
+@@ -276,6 +276,10 @@
      sources += [
        "video/linux/v4l2_capture_delegate_gpu_helper.cc",
        "video/linux/v4l2_capture_delegate_gpu_helper.h",
@@ -699,25 +699,21 @@ index 0000000..59d834f
 +
 +#endif  // !MEDIA_CAPTURE_VIDEO_LINUX_V4L2_EXTERNAL_BUFFER_TRACKER_H_
 diff --git a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
-index 442b471..affdec1a 100644
+index 331336d..1530606 100644
 --- a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
 +++ b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
-@@ -14,7 +14,10 @@
- #include "media/capture/video/chromeos/gpu_memory_buffer_tracker_cros.h"
- #elif BUILDFLAG(IS_MAC)
- #include "media/capture/video/mac/gpu_memory_buffer_tracker_mac.h"
--#elif BUILDFLAG(IS_LINUX)
-+#endif
-+
-+#if BUILDFLAG(IS_LINUX)
+@@ -19,6 +19,7 @@
+ #endif
+ 
+ #if BUILDFLAG(IS_LINUX)
 +#include "media/capture/video/linux/v4l2_external_buffer_tracker.h"
  #include "media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h"
- #elif BUILDFLAG(IS_WIN)
- #include "media/capture/video/shared_memory_buffer_tracker.h"
-@@ -78,6 +81,8 @@
-   }
-   return std::make_unique<GpuMemoryBufferTrackerWin>(std::move(handle),
-                                                      dxgi_device_manager_);
+ #endif
+ 
+@@ -48,6 +49,8 @@
+     const gfx::GpuMemoryBufferHandle& handle) {
+ #if BUILDFLAG(IS_MAC)
+   return std::make_unique<GpuMemoryBufferTrackerMac>(handle.io_surface);
 +#elif BUILDFLAG(IS_LINUX)
 +  return std::make_unique<V4L2ExternalBufferTracker>(handle.Clone());
  #else
