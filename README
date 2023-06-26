@@ -1,0 +1,14 @@
+This is the repository for the official Chromium snap (edge channel).
+
+It follows the dev channel release cadence upstream. I.e., when Google
+releases a new version for their dev channel, the snapcraft.yaml in this
+repository is updated to download and build that release.
+
+The dev channel is the first point of contact to upstream change in general.
+The snap maintainers also abide by that conduct for downstream changes as well.
+For instance, when a new base snap is released, the move will be made first
+in dev, then in beta, then finally in stable.
+
+The snap is built for x86 (amd64), ARMv7l (armhf) and ARMv8 (arm64).
+
+https://wiki.ubuntu.com/DesktopTeam/ChromiumMaintenance
