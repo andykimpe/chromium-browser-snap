@@ -702,22 +702,10 @@ diff --git a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc b/
 index 442b471..affdec1a 100644
 --- a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
 +++ b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
-@@ -14,7 +14,10 @@
- #include "media/capture/video/chromeos/gpu_memory_buffer_tracker_cros.h"
- #elif BUILDFLAG(IS_MAC)
- #include "media/capture/video/mac/gpu_memory_buffer_tracker_mac.h"
--#elif BUILDFLAG(IS_LINUX)
-+#endif
-+
-+#if BUILDFLAG(IS_LINUX)
-+#include "media/capture/video/linux/v4l2_external_buffer_tracker.h"
- #include "media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h"
- #elif BUILDFLAG(IS_WIN)
- #include "media/capture/video/shared_memory_buffer_tracker.h"
 @@ -78,6 +81,8 @@
-   }
-   return std::make_unique<GpuMemoryBufferTrackerWin>(std::move(handle),
-                                                      dxgi_device_manager_);
+     gfx::GpuMemoryBufferHandle handle) {
+ #if BUILDFLAG(IS_MAC)
+   return std::make_unique<GpuMemoryBufferTrackerMac>(handle.io_surface);
 +#elif BUILDFLAG(IS_LINUX)
 +  return std::make_unique<V4L2ExternalBufferTracker>(handle.Clone());
  #else

@@ -22,7 +22,7 @@ Forwarded: not-needed
  #include <prerror.h>
 --- a/crypto/scoped_nss_types.h
 +++ b/crypto/scoped_nss_types.h
-@@ -4,7 +4,7 @@
+@@ -8,7 +8,7 @@
  #include <cert.h>
  #include <certt.h>
  #include <keyhi.h>
@@ -44,7 +44,7 @@ Forwarded: not-needed
  #include <seccomon.h>
 --- a/net/ssl/client_cert_store_nss.cc
 +++ b/net/ssl/client_cert_store_nss.cc
-@@ -8,7 +8,7 @@
+@@ -4,7 +4,7 @@
  
  #include "net/ssl/client_cert_store_nss.h"
  

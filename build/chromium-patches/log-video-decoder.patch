@@ -14,7 +14,7 @@ Forwarded: not-needed
  #include "base/notreached.h"
  
  namespace media {
-@@ -23,34 +23,49 @@
+@@ -23,34 +23,49 @@ bool Decoder::SupportsDecryption() const
  std::string GetDecoderName(VideoDecoderType type) {
    switch (type) {
      case VideoDecoderType::kUnknown:
@@ -62,5 +62,5 @@ Forwarded: not-needed
      case VideoDecoderType::kTesting:
 +      LOG(INFO) << "Testing or Mock Video decoder";
        return "Testing or Mock Video decoder";
-   }
- }
+     case VideoDecoderType::kOutOfProcess:
+       return "OOPVideoDecoder";

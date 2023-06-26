@@ -20,7 +20,7 @@ Author: Olivier Tilloy <olivier.tilloy@canonical.com>
  }
  
  # Config that adds include directory for vulkan-tools.
-@@ -361,6 +368,7 @@ source_set("sources") {
+@@ -376,6 +383,7 @@ source_set("sources") {
        "XlibXcbFunctions.cpp",
        "XlibXcbFunctions.h",
      ]
@@ -30,7 +30,7 @@ Author: Olivier Tilloy <olivier.tilloy@canonical.com>
    # Only win32 app needs to link with user32.lib
 --- a/third_party/dawn/src/dawn/common/BUILD.gn
 +++ b/third_party/dawn/src/dawn/common/BUILD.gn
-@@ -276,7 +283,7 @@
+@@ -291,7 +291,7 @@ if (is_win || is_linux || is_chromeos ||
      # Note that while this doesn't make `internal_config` a public config of
      # Dawn libraries because `:common` is only used as a private deps of Dawn
      # targets, so `internal_config` doesn't leak out of Dawn.
