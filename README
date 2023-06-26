@@ -1,0 +1,9 @@
+This is the repository for the official Chromium snap (beta channel).
+
+It follows the beta channel release cadence upstream. I.e., when Google
+releases a new version for their beta channel, the snapcraft.yaml in this
+repository is updated to download and build that release.
+
+The snap is built for x86 (amd64), ARMv7l (armhf) and ARMv8 (arm64).
+
+https://wiki.ubuntu.com/DesktopTeam/ChromiumMaintenance
