@@ -1,0 +1,14 @@
+This is the repository for the official Chromium snap (stable and candidate
+channels).
+
+It follows the stable channel release cadence upstream. I.e., when Google
+releases a new version for their stable channel, the snapcraft.yaml in this
+repository is updated to download and build that release.
+
+Successful builds are released first in the candidate channel. If they pass
+manual and automated tests, the maintainer of the snap promotes them to 
+the stable channel, which is the one that the vast majority of users track.
+
+The snap is built for x86 (amd64), ARMv7l (armhf) and ARMv8 (arm64).
+
+https://wiki.ubuntu.com/DesktopTeam/ChromiumMaintenance
