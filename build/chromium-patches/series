@@ -4,7 +4,6 @@ optimization/topic-intel/faf232f:dynamic-check-nv12.diff
 optimization/topic-intel/12724af:vaapi-flag-ozone-wayland.diff
 optimization/topic-intel/32c4440:one-copy.diff
 optimization/topic-intel/22fe045d:linux-unstable-deb.diff
-optimization/topic-intel/d417bb1:zero-copy.diff
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
