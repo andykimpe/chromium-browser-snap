@@ -685,3 +685,15 @@ index b7991d9..feef2ca 100644
    static OzonePlatform* GetInstance();
  
    static bool IsInitialized();
+diff --git a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
+index b93a5b946..a2c58996a 100644
+--- a/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
++++ b/media/capture/video/video_capture_buffer_tracker_factory_impl.cc
+@@ -20,6 +20,7 @@
+ 
+ #if BUILDFLAG(IS_LINUX)
+ #include "media/capture/video/linux/v4l2_gpu_memory_buffer_tracker.h"
++#include "media/capture/video/linux/v4l2_external_buffer_tracker.h"
+ #endif
+ 
+ namespace media {
