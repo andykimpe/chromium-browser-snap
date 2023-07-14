@@ -112,7 +112,7 @@ fi
 
 # Add necessary flags for VAAPI video en/decoding
 CHROMIUM_VAAPI_FLAGS='--use-gl=angle --use-angle=gl --enable-features=VaapiVideoDecoder,VaapiVideoEncoder,VaapiVideoDecodeLinuxGL,UseChromeOSDirectVideoDecoder'
-CHROMIUM_ONECOPY_FLAGS="--video-capture-use-gpu-memory-buffer"
+CHROMIUM_ONECOPY_FLAGS="--video-capture-use-gpu-memory-buffer --enable-native-gpu-memory-buffers"
 CHROMIUM_OZONE_FLAGS="--ozone-platform-hint=auto"
 
 CHROMIUM_FLAGS="$CHROMIUM_OZONE_FLAGS $CHROMIUM_VAAPI_FLAGS $CHROMIUM_ONECOPY_FLAGS $CHROMIUM_FLAGS"
