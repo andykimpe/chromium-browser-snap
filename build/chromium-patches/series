@@ -3,6 +3,7 @@ optimization/internal:fix-dri-loading.diff
 optimization/topic-intel/faf232f:dynamic-check-nv12.diff
 optimization/topic-intel/12724af:vaapi-flag-ozone-wayland.diff
 optimization/topic-intel/22fe045d:linux-unstable-deb.diff
+optimization/topic-intel/44a44ad:adjust-buffer-format-order.diff
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
