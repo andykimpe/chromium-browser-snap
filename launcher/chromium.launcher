@@ -123,17 +123,6 @@ esac
 # Refer to https://bugs.archlinux.org/task/76268.
 CHROMIUM_FLAGS="$CHROMIUM_FLAGS --disable-features=TFLiteLanguageDetectionEnabled"
 
-# Check if the user wants to actually run chromium as a daemon
-daemon="$(snapctl get daemon)"
-if [ "$daemon" = "true" ]; then
-    # If chromium is running as a daemon, assume we're running as a kiosk.
-    CHROMIUM_FLAGS="$CHROMIUM_FLAGS --kiosk --no-sandbox --disable-dev-shm-usage"
-    # If we're running as a kiosk, we are using Frame, so use Wayland.
-    CHROMIUM_FLAGS="$CHROMIUM_FLAGS --enable-features=UseOzonePlatform --ozone-platform=wayland"
-    # If we're running as a kiosk, we are loading a specific URL.
-    set -- "$@" "$(snapctl get url)"
-fi
-
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
   exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_FLAGS "$@"
 else
