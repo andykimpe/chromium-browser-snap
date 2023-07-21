@@ -21,9 +21,11 @@ apps:
       CHROME_DESKTOP: chromium.desktop
       CHROME_CONFIG_HOME: $SNAP_USER_COMMON
       GTK_USE_PORTAL: 1
+      GFX_FEATURE_FILE: $SNAP_USER_COMMON/igfx_user_feature.txt
       SPA_PLUGIN_DIR: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/spa-0.2
       PIPEWIRE_CONFIG_NAME: $SNAP/usr/share/pipewire/pipewire.conf
       PIPEWIRE_MODULE_DIR: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pipewire-0.3
+      MINIGBM_DEBUG: 1
     plugs:
       - audio-playback
       - audio-record
@@ -178,6 +180,7 @@ parts:
       - libssl-dev
       - libsystemd-dev
       - libva-dev
+      - libwayland-dev
       - libxshmfence-dev
       - libxss-dev
       - lsb-release

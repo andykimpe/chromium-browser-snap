@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Move an existing profile directory over to $SNAP_USER_COMMON, which is shared
 # across revisions of the snap. This addresses profile corruption when the snap
@@ -119,9 +119,15 @@ case "$CHROMIUM_FLAGS" in
     ;;
 esac
 
-# Allows translation of pages in foreign languages.
-# Refer to https://bugs.archlinux.org/task/76268.
-CHROMIUM_FLAGS="$CHROMIUM_FLAGS --disable-features=TFLiteLanguageDetectionEnabled"
+# Add necessary flags for VAAPI video en/decoding
+CHROMIUM_VAAPI_FLAGS='--use-gl=angle --use-angle=gl --enable-features=VaapiVideoDecoder,VaapiVideoEncoder,VaapiVideoDecodeLinuxGL,UseChromeOSDirectVideoDecoder'
+CHROMIUM_ONECOPY_FLAGS="--video-capture-use-gpu-memory-buffer --enable-native-gpu-memory-buffers"
+CHROMIUM_OZONE_FLAGS="--ozone-platform-hint=auto"
+
+CHROMIUM_FLAGS="$CHROMIUM_OZONE_FLAGS $CHROMIUM_VAAPI_FLAGS $CHROMIUM_ONECOPY_FLAGS $CHROMIUM_FLAGS"
+
+# GlobalVaapiLock : webRTC optimization
+CHROMIUM_FLAGS="--disable-features=TFLiteLanguageDetectionEnabled,GlobalVaapiLock $CHROMIUM_FLAGS"
 
 # Check if the user wants to actually run chromium as a daemon
 daemon="$(snapctl get daemon)"
@@ -134,6 +140,8 @@ if [ "$daemon" = "true" ]; then
     set -- "$@" "$(snapctl get url)"
 fi
 
+=======
+>>>>>>> hwacc-dev
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
   exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_FLAGS "$@"
 else
