@@ -140,8 +140,6 @@ if [ "$daemon" = "true" ]; then
     set -- "$@" "$(snapctl get url)"
 fi
 
-=======
->>>>>>> hwacc-dev
 if [ $WANT_TEMP_PROFILE -eq 0 ] ; then
   exec "$SNAP/usr/lib/chromium-browser/chrome" --password-store=$PASSWORD_STORE $CHROMIUM_FLAGS "$@"
 else
