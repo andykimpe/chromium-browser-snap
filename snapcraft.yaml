@@ -243,6 +243,12 @@ parts:
         echo "use_thin_lto = false" >> $OUT/args.gn
         # Do not build with NEON on armhf (https://launchpad.net/bugs/1884856)
         echo "arm_use_neon = false" >> $OUT/args.gn
+      # Necessary for video hardware-acceleration, should not be set on ARM
+      # because it's not supposed to be used there and the build fails.
+      elif [ $CRAFT_TARGET_ARCH = "amd64" ]; then
+        echo 'use_system_minigbm = false' >> $OUT/args.gn
+        echo 'use_intel_minigbm = true' >> $OUT/args.gn
+        echo 'use_amdgpu_minigbm = true' >> $OUT/args.gn
       fi
 
       $OUT/gn gen $OUT

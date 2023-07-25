@@ -34,6 +34,3 @@ target_os = "linux"
 current_os = "linux"
 proprietary_codecs = true
 ffmpeg_branding = "Chrome"
-use_system_minigbm = false
-use_intel_minigbm = true
-use_amdgpu_minigbm = true
