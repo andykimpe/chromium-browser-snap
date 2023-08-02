@@ -20,6 +20,6 @@ Forwarded: not-needed
 +               .AppendASCII(kWidevineCdmBaseDirectory);
 +      if (base::PathExists(cur))
 +        break;
-       if (!GetComponentDirectory(&cur))
+       if (!GetComponentDirectory(&cur)) {
          return false;
-       cur = cur.AppendASCII(kWidevineCdmBaseDirectory);
+       }

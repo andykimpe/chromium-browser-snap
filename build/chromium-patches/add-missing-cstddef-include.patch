@@ -6,7 +6,7 @@ Forwarded: not-yet
 +++ b/third_party/angle/src/libANGLE/Constants.h
 @@ -13,6 +13,8 @@
  
- #include <stdint.h>
+ #include <stddef.h>
  
 +#include <cstddef>
 +

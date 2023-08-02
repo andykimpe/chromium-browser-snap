@@ -1,9 +1,13 @@
-VAEncSequenceParameterBufferAV1.patch
+optimization/internal:include-libva-config.patch
+optimization/internal:fix-dri-loading.diff
+optimization/topic-intel/12724af:vaapi-flag-ozone-wayland.diff
+optimization/topic-intel/22fe045:enable-linux-unstable-deb-target.diff
+optimization/topic-intel/44a44ad:adjust-buffer-format-order.diff
 title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
 widevine-enable-version-string.patch
-widevine-other-locations
+widevine-other-locations.patch
 define__libc_malloc.patch
 set-rpath-on-chromium-executables.patch
 add-missing-cstddef-include.patch
@@ -29,3 +33,4 @@ dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
 hwcap2-mte.patch
 fix-nss-include.patch
+log-video-decoder.patch
