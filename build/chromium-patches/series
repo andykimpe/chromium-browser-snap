@@ -34,3 +34,4 @@ linker-oom-armhf.patch
 hwcap2-mte.patch
 fix-nss-include.patch
 log-video-decoder.patch
+VAEncSequenceParameterBufferAV1.patch
