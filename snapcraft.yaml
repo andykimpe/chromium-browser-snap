@@ -174,7 +174,7 @@ parts:
     override-build: |
       set -eux
 
-      QUILT_PATCHES=$CRAFT_STAGE/build/chromium-patches QUILT_PC=.pc.chromium-patches quilt push -a
+      QUILT_PATCHES=$CRAFT_STAGE/build/chromium-patches quilt push -a
 
       # Get the Node.js binaries needed to build chromium's WebUI
       third_party/node/update_node_binaries
