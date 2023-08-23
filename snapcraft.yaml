@@ -184,7 +184,15 @@ parts:
       else
         # --with-ml-inliner-model= to avoid depending on vpython3,
         # https://bugs.chromium.org/p/chromium/issues/detail?id=1368071
-        python3 tools/clang/scripts/build.py --skip-checkout --bootstrap --disable-asserts --pgo --without-android --without-fuchsia --use-system-cmake --with-ml-inliner-model=
+        if ! python3 tools/clang/scripts/build.py --skip-checkout --bootstrap \
+             --disable-asserts --pgo --without-android --without-fuchsia \
+             --use-system-cmake --with-ml-inliner-model=
+        then
+          # In ARMv7l this sometimes fails and asks to submit a bug report with
+          # /tmp/CodeGen* files attached.
+          tail -n+0 /tmp/CodeGen*
+          exit 9
+        fi
       fi
 
       # Build GN
