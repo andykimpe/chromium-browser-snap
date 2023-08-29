@@ -87,6 +87,11 @@ export MANPATH=$SNAP
 export GROFF_FONT_PATH=$SNAP/usr/share/groff/current/font
 export GROFF_TMAC_PATH=$SNAP/usr/share/groff/current/tmac
 
+# This convinces Chromium that it is running from /snap/bin instead of the
+# unconfined path, /snap/*/*/usr/lib/chromium-browser/chrome.
+# As a result, it creates desktop files with an appropriate Exec= line.
+export CHROME_WRAPPER=/snap/bin/$SNAP_INSTANCE_NAME
+
 # Source ~/.chromium-browser.init for compatibility with the chromium-browser
 # deb package (https://launchpad.net/bugs/1837746)
 if [ -r $SNAP_REAL_HOME/.chromium-browser.init ]; then
