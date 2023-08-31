@@ -34,3 +34,4 @@ hwcap2-mte.patch
 fix-nss-include.patch
 log-video-decoder.patch
 VAEncSequenceParameterBufferAV1.patch
+desktop-file-to-local-share-applications.patch
