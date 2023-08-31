@@ -119,6 +119,9 @@ plugs:
   browser-sandbox:
     interface: browser-support
     allow-sandbox: true
+  dot-local-share-applications:
+    interface: personal-files
+    write: [$HOME/.local/share/applications]
   chromium-config:
     interface: personal-files
     read: [$HOME/.config/chromium, $HOME/.chromium-browser.init]
