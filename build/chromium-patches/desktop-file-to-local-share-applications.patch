@@ -1,0 +1,24 @@
+Description: Write .desktop files to $HOME/.local/share/applications.
+ .
+ That is where desktop environments expect them.
+ .
+ The chromium:desktop-files plug needs to be connected to the personal-files
+ slot for that to work in the snap.
+Author: Nathan Pratta Teodosio <nathan.teodosio@canonical.com>
+Forwarded: not-needed
+Last-Update: 2023-08-31
+
+--- a/chrome/browser/web_applications/os_integration/web_app_shortcut_linux.cc
++++ b/chrome/browser/web_applications/os_integration/web_app_shortcut_linux.cc
+@@ -64,7 +64,10 @@ GetDesktopPath()
+     CHECK_IS_TEST();
+     return os_override->desktop();
+   }
+-  base::PathService::Get(base::DIR_USER_DESKTOP, &desktop_path);
++  std::unique_ptr<base::Environment> env(base::Environment::Create());
++  std::string realhome;
++  env->GetVar("SNAP_REAL_HOME", &realhome);
++  desktop_path = base::FilePath(realhome).Append(FILE_PATH_LITERAL("/.local/share/applications"));
+   return desktop_path;
+ }
+
