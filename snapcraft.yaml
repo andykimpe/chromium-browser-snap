@@ -88,6 +88,9 @@ plugs:
   dot-local-share-applications:
     interface: personal-files
     write: [$HOME/.local/share/applications]
+  dot-local-share-icons:
+    interface: personal-files
+    write: [$HOME/.local/share/icons]
   chromium-config:
     interface: personal-files
     read: [$HOME/.config/chromium, $HOME/.chromium-browser.init]
