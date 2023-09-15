@@ -5,7 +5,7 @@ Forwarded: not-yet
 
 --- a/media/gpu/vaapi/av1_vaapi_video_encoder_delegate.cc
 +++ b/media/gpu/vaapi/av1_vaapi_video_encoder_delegate.cc
-@@ -495,9 +495,11 @@
+@@ -488,9 +488,11 @@ bool AV1VaapiVideoEncoderDelegate::Submi
    seq_param_.seq_fields.bits.enable_superres = 0;
    seq_param_.seq_fields.bits.enable_cdef = 1;
    seq_param_.seq_fields.bits.enable_restoration = 0;

@@ -27,7 +27,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/2008433
       (target_cpu == "x86" || target_cpu == "x64" || target_cpu == "arm64"))
 --- a/chrome/common/media/cdm_registration.cc
 +++ b/chrome/common/media/cdm_registration.cc
-@@ -93,7 +93,7 @@ std::unique_ptr<content::CdmInfo> Create
+@@ -100,7 +100,7 @@ std::unique_ptr<content::CdmInfo> Create
          // BUILDFLAG(ENABLE_WIDEVINE_CDM_COMPONENT)) && (BUILDFLAG(IS_LINUX) ||
          // BUILDFLAG(IS_CHROMEOS))
  
@@ -36,16 +36,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/2008433
      (BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS))
  // On Linux/ChromeOS we have to preload the CDM since it uses the zygote
  // sandbox. On Windows and Mac, the bundled CDM is handled by the component
-@@ -114,7 +114,7 @@ content::CdmInfo* GetBundledWidevine() {
-       }());
-   return s_cdm_info->get();
- }
--#endif  // BUILDFLAG(BUNDLE_WIDEVINE_CDM) && (BUILDFLAG(IS_LINUX) ||
-+#endif  // BUILDFLAG(ENABLE_WIDEVINE_CDM_COMPONENT) && (BUILDFLAG(IS_LINUX) ||
-         // BUILDFLAG(IS_CHROMEOS))
- 
- #if BUILDFLAG(ENABLE_WIDEVINE_CDM_COMPONENT) && \
-@@ -162,7 +162,7 @@ void AddSoftwareSecureWidevine(std::vect
+@@ -181,7 +181,7 @@ void AddSoftwareSecureWidevine(std::vect
    // case both versions will be the same and point to the same directory, so
    // it doesn't matter which one is loaded.
    content::CdmInfo* bundled_widevine = nullptr;

@@ -13,10 +13,10 @@ Forwarded: not-needed
  #include "chrome/common/chrome_paths.h"
  
 +#include "base/environment.h"
+ #include "base/files/file_path.h"
  #include "base/files/file_util.h"
- #include "base/logging.h"
- #include "base/native_library.h"
-@@ -423,10 +424,18 @@ bool PathProvider(int key, base::FilePat
+ #include "base/no_destructor.h"
+@@ -502,10 +503,18 @@ bool PathProvider(int key, base::FilePat
        break;
  #if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_MAC) && !BUILDFLAG(IS_OPENBSD)
      case chrome::DIR_POLICY_FILES: {

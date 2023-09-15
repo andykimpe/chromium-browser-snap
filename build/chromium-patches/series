@@ -3,7 +3,7 @@ title-bar-default-system.patch-v35
 search-credit.patch
 snap-policies-path.patch
 widevine-enable-version-string.patch
-widevine-other-locations
+widevine-other-locations.patch
 define__libc_malloc.patch
 set-rpath-on-chromium-executables.patch
 add-missing-cstddef-include.patch
@@ -15,7 +15,6 @@ build-script-unset-default-target-triple.patch
 build-script-revert-build-with-stable-clang.patch
 build-script-armhf-use-sysroot.patch
 build-script-limit-compile-jobs.patch
-build-script-find-the-right-libstdc++.patch
 chromedriver-snap-compatibility.patch
 node-update-binaries-arch-specific.patch
 closure-compiler-use-system-wide-java.patch
@@ -27,5 +26,4 @@ swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
-hwcap2-mte.patch
 fix-nss-include.patch
