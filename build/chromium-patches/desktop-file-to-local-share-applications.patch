@@ -22,24 +22,3 @@ Last-Update: 2023-08-31
    return desktop_path;
  }
 
---- a/chrome/browser/web_applications/web_app_icon_manager.cc
-+++ b/chrome/browser/web_applications/web_app_icon_manager.cc
-@@ -18,4 +18,5 @@
- #include "base/containers/extend.h"
- #include "base/containers/flat_tree.h"
-+#include "base/environment.h"
- #include "base/feature_list.h"
- #include "base/files/file.h"
-@@ -196,8 +196,11 @@
- // stored for the relevant profile.
- base::FilePath GetIconFileName(const base::FilePath& web_apps_directory,
-                                const IconId& icon_id) {
-+  std::unique_ptr<base::Environment> env(base::Environment::Create());
-+  std::string realhome;
-+  env->GetVar("SNAP_REAL_HOME", &realhome);
-   base::FilePath app_dir =
--      GetManifestResourcesDirectoryForApp(web_apps_directory, icon_id.app_id);
-+      base::FilePath(realhome).Append(FILE_PATH_LITERAL("/.local/share/icons/"));
-   base::FilePath icons_dir = GetProductIconsDirectory(app_dir, icon_id.purpose);
-
-   return icons_dir.AppendASCII(base::StringPrintf("%i.png", icon_id.size));
