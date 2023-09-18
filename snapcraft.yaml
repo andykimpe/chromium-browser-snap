@@ -172,6 +172,7 @@ parts:
     stage-packages:
       - libnss3
       - libxss1
+      - xdg-utils
     override-pull: |
       set -eux
       craftctl default
