@@ -327,6 +327,11 @@ parts:
       cd usr/bin
       ln -s /usr/bin/xdg-open xdg-email
 
+  xdg-icon-resource:
+    plugin: nil
+    stage-packages: [xdg-utils]
+    stage: [usr/bin/xdg-icon-resource]
+
   libsecret:
     source: https://gitlab.gnome.org/GNOME/libsecret.git
     source-depth: 1
