@@ -327,6 +327,7 @@ parts:
       cd usr/bin
       ln -s /usr/bin/xdg-open xdg-email
 
+  # So that Chromium can install icons for progressive web applications.
   xdg-icon-resource:
     plugin: nil
     stage-packages: [xdg-utils]
