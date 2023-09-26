@@ -335,14 +335,11 @@ parts:
       cd usr/bin
       ln -s /usr/bin/xdg-open xdg-email
 
-  # So that Chromium can install icons and menu entries for progressive web
-  # applications.
+  # So that Chromium can install icons for progressive web applications.
   xdg-icon-resource:
     plugin: nil
     stage-packages: [xdg-utils]
-    stage:
-      - usr/bin/xdg-icon-resource
-      - usr/bin/xdg-desktop-menu
+    stage: [usr/bin/xdg-icon-resource]
 
   libsecret:
     source: https://gitlab.gnome.org/GNOME/libsecret.git
