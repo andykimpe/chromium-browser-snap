@@ -340,6 +340,9 @@ parts:
     plugin: nil
     stage-packages: [xdg-utils]
     stage: [usr/bin/xdg-icon-resource]
+    override-prime: |
+      find / -path '*/usr/bin/xdg-icon-resource' -print -exec sed -i '/^xdg_user_dir="$XDG_DATA_HOME"$/s|".*"|$SNAP_REAL_HOME/.local/share|' {} +
+      craftctl default
 
   libsecret:
     source: https://gitlab.gnome.org/GNOME/libsecret.git
