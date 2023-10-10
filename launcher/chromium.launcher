@@ -1,5 +1,4 @@
 #!/bin/sh
-export XDG_DATA_HOME=$SNAP_REAL_HOME/.local/share
 
 # Move an existing profile directory over to $SNAP_USER_COMMON, which is shared
 # across revisions of the snap. This addresses profile corruption when the snap
