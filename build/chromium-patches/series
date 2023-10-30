@@ -34,3 +34,4 @@ linker-oom-armhf.patch
 fix-nss-include.patch
 VAEncSequenceParameterBufferAV1.patch
 desktop-file-to-local-share-applications.patch
+no-speechd.patch
