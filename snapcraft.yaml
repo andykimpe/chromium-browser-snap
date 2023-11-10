@@ -158,8 +158,8 @@ parts:
 
   chromium:
     plugin: nil
-    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-121.0.6103.3.tar.xz
-    source-checksum: sha512/6018daec1d5933e8b99bf84ddf5ac18e82d7f561af43f2da074f3628b3754b404b960e689985595cb01c5537e0a3a8a0584e424cf23d85d910501f664d4ac0ed
+    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-121.0.6115.2.tar.xz
+    source-checksum: sha512/20b2805870f4945bf7fed6e7af9f24541e6c1c40d3f3b90c7c8b6a775fcea1eead5ce88098a3c2e7b8d4d05e69d23d6bd1391cb98f649b47491425890d4c9bb3
     after:
       - chromium-build
       - launcher
