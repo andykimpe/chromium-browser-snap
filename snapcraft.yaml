@@ -30,6 +30,7 @@ apps:
       - bluez # for Web Bluetooth (https://launchpad.net/bugs/1887201)
       - camera
       - cups
+      - hardware-observe
       - home
       - joystick
       - mount-observe
@@ -57,6 +58,7 @@ apps:
       - bluez
       - camera
       - cups
+      - hardware-observe
       - home
       - joystick
       - mount-observe
