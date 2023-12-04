@@ -226,6 +226,7 @@ parts:
       fi
 
       $OUT/gn gen $OUT
+      # Add -v to see the exact command used for each build step.
       ninja -C $OUT chrome chrome_sandbox chromedriver
 
       # Strip debug symbols off the chrome binary
