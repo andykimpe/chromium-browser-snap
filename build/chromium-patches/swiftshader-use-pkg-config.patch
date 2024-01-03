@@ -41,17 +41,17 @@ Author: Olivier Tilloy <olivier.tilloy@canonical.com>
 +      packages = [ "x11-xcb" ]
 +    }
 +  }
- }
- 
- swiftshader_source_set("swiftshader_libvulkan_headers") {
+
+   if (build_with_chromium) {
+     # Chromium requires higher precision filtering to pass the layout tests with SwiftShader.
 @@ -228,6 +235,10 @@ swiftshader_shared_library("swiftshader_
-   public_deps = [
-     ":swiftshader_libvulkan_headers",
+     "../../third_party/SPIRV-Headers/include",
    ]
+ 
 +
 +  if (is_linux) {
 +    configs += [ ":x11-xcb" ]
 +  }
+   public_deps = [ ":swiftshader_libvulkan_headers" ]
  }
- 
- # Generates an ICD JSON file that can be used by all targets in this GN build
+
