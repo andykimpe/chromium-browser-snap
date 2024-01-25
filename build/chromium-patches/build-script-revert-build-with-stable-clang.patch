@@ -5,8 +5,8 @@ Forwarded: not-needed
 
 --- a/tools/clang/scripts/build.py
 +++ b/tools/clang/scripts/build.py
-@@ -731,10 +731,6 @@ def main():
-       '-DBUG_REPORT_URL=' + BUG_REPORT_URL,
+@@ -661,10 +661,6 @@ def main():
+       '-DLLVM_INCLUDE_GO_TESTS=OFF',
        # See crbug.com/1126219: Use native symbolizer instead of DIA
        '-DLLVM_ENABLE_DIA_SDK=OFF',
 -      # Link all binaries with lld. Effectively passes -fuse-ld=lld to the
@@ -16,7 +16,7 @@ Forwarded: not-needed
        # The default value differs per platform, force it off everywhere.
        '-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF',
        # Don't use curl.
-@@ -774,7 +770,6 @@ def main():
+@@ -696,7 +696,6 @@ def main():
      cc = args.host_cc
      cxx = args.host_cxx
    else:
@@ -24,7 +24,7 @@ Forwarded: not-needed
      if sys.platform == 'win32':
        cc = os.path.join(PINNED_CLANG_DIR, 'bin', 'clang-cl.exe')
        cxx = os.path.join(PINNED_CLANG_DIR, 'bin', 'clang-cl.exe')
-@@ -785,8 +780,8 @@ def main():
+@@ -707,8 +706,8 @@ def main():
        cxx = cxx.replace('\\', '/')
        lld = lld.replace('\\', '/')
      else:
@@ -34,13 +34,13 @@ Forwarded: not-needed
 +      cxx = '/usr/bin/g++'
  
      if sys.platform.startswith('linux'):
-       base_cmake_args += [ '-DLLVM_STATIC_LINK_CXX_STDLIB=ON' ]
-@@ -900,6 +895,8 @@ def main():
+       MaybeDownloadHostGcc(args)
+@@ -863,6 +862,8 @@ def main():
      else:
        cc = os.path.join(LLVM_BOOTSTRAP_INSTALL_DIR, 'bin', 'clang')
        cxx = os.path.join(LLVM_BOOTSTRAP_INSTALL_DIR, 'bin', 'clang++')
 +    if sys.platform.startswith('linux'):
 +      base_cmake_args.append('-DLLVM_ENABLE_LLD=ON')
- 
+
      print('Bootstrap compiler installed.')
- 
+

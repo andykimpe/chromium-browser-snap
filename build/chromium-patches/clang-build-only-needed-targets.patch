@@ -4,7 +4,7 @@ Forwarded: not-needed
 
 --- a/tools/clang/scripts/build.py
 +++ b/tools/clang/scripts/build.py
-@@ -696,7 +696,7 @@ def main():
+@@ -644,7 +644,7 @@ def main():
    ldflags = []
  
    targets = 'AArch64;ARM;LoongArch;Mips;PowerPC;RISCV;SystemZ;WebAssembly;X86'
