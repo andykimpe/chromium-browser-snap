@@ -188,6 +188,7 @@ parts:
       # Pre-built binaries are provided for clang on x86-64,
       # for all other architectures they have to be built from source.
       if [ $CRAFT_TARGET_ARCH = "amd64" ]; then
+        python3 tools/rust/update_rust.py
         python3 tools/clang/scripts/update.py
       else
         # --with-ml-inliner-model= to avoid depending on vpython3,
