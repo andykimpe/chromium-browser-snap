@@ -1,6 +1,5 @@
 optimization/internal:include-libva-config.patch
 optimization/internal:fix-dri-loading.diff
-optimization/topic-intel/12724af:vaapi-flag-ozone-wayland.diff
 optimization/topic-intel/22fe045:enable-linux-unstable-deb-target.diff
 optimization/topic-intel/44a44ad:adjust-buffer-format-order.diff
 title-bar-default-system.patch-v35
@@ -27,9 +26,9 @@ expat-use-pkg-config.patch
 angle-use-pkg-config.patch
 swiftshader-use-pkg-config.patch
 use-system-wide-eu-strip.patch
+log-video-decoder.patch
 dont-collect-motherboard-metrics.patch
 linker-oom-armhf.patch
 fix-nss-include.patch
-log-video-decoder.patch
 VAEncSequenceParameterBufferAV1.patch
 desktop-file-to-local-share-applications.patch

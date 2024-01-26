@@ -44,14 +44,14 @@ Author: Olivier Tilloy <olivier.tilloy@canonical.com>
 
    if (build_with_chromium) {
      # Chromium requires higher precision filtering to pass the layout tests with SwiftShader.
-@@ -228,6 +235,10 @@ swiftshader_shared_library("swiftshader_
+@@ -196,6 +203,10 @@ swiftshader_shared_library("swiftshader_
+     "../../third_party/SPIRV-Tools/include",
      "../../third_party/SPIRV-Headers/include",
    ]
- 
 +
 +  if (is_linux) {
 +    configs += [ ":x11-xcb" ]
 +  }
-   public_deps = [ ":swiftshader_libvulkan_headers" ]
  }
 
+ swiftshader_shared_library("swiftshader_libvulkan") {
