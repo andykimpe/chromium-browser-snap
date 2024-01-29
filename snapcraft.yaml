@@ -124,6 +124,8 @@ parts:
     plugin: nil
     source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-121.0.6167.85.tar.xz
     source-checksum: sha512/fce8a58524c457d44e2eedf612b8d5e3d2085246e2b554ff2e5354be80722fe0c58271d98af38088868dab11224e4e86784f3fb75197f9e70fe9c15ab8024f9b
+    build-environment:
+      - RUSTC_BOOTSTRAP: 1
     after:
       - chromium-build
       - launcher
@@ -164,6 +166,8 @@ parts:
       - python3-xcbgen
       - quilt
       - qtbase5-dev
+      - on arm64:
+        - rustc
       - sed
       - subversion
       - wget
@@ -214,6 +218,9 @@ parts:
       OUT=out/Release
       mkdir -p $OUT
       cp $CRAFT_STAGE/build/args.gn $OUT/
+      if [ $CRAFT_TARGET_ARCH = "arm64" ]; then
+        echo 'rust_sysroot_absolute = "/usr"' >> $OUT/args.gn
+      fi
       if [ $CRAFT_TARGET_ARCH = "armhf" ]; then
         # Do not use lld (the LLVM linker) on 32-bits architectures
         # (armhf) because it OOMs when linking the chrome binary.
