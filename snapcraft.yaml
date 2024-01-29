@@ -166,6 +166,8 @@ parts:
       - python3-xcbgen
       - quilt
       - qtbase5-dev
+      - on arm64:
+        - rustc
       - sed
       - subversion
       - wget
@@ -217,6 +219,9 @@ parts:
       OUT=out/Release
       mkdir -p $OUT
       cp $CRAFT_STAGE/build/args.gn $OUT/
+      if [ $CRAFT_TARGET_ARCH = "arm64" ]; then
+        echo 'rust_sysroot_absolute = "/usr"' >> $OUT/args.gn
+      fi
       if [ $CRAFT_TARGET_ARCH = "armhf" ]; then
         # Do not use lld (the LLVM linker) on 32-bits architectures
         # (armhf) because it OOMs when linking the chrome binary.
