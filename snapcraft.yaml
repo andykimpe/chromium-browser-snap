@@ -160,6 +160,8 @@ parts:
     plugin: nil
     source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-123.0.6262.5.tar.xz
     source-checksum: sha512/915a41ce56c3dbeb4ebc495dd2ddfcef814d4fb837192b17b37983abc9bd2381daea74cabe968bfd5af6dfb289e7fda5bda476bf550428a7209f80e055b7fdb2
+    build-environment:
+      - RUSTC_BOOTSTRAP: 1
     after:
       - chromium-build
       - launcher
