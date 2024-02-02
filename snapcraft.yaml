@@ -123,8 +123,8 @@ parts:
 
   chromium:
     plugin: nil
-    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-122.0.6261.6.tar.xz
-    source-checksum: sha512/729fe19fb2e6917ed8936bb7502edd4247e0cdf44334cb6369f774e8794cd8a2418bceece9e3c484e266212e0b56639ef936dfb64629c826bf928aed756b802c
+    source: https://commondatastorage.googleapis.com/chromium-browser-official/chromium-122.0.6261.18.tar.xz
+    source-checksum: sha512/6428ffb9c17f10795d839937f371b073f117dab8ee27aedbe0205c833d20bc0072db928468ca9c53debdedd65ae9e99cf8bfb4f121a3da659a6e5fc0906883b1
     build-environment:
       - RUSTC_BOOTSTRAP: 1
     after:
