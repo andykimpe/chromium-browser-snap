@@ -320,6 +320,15 @@ parts:
           $CRAFT_PART_SRC/chrome/app/resources/manpage.1.in \
           > $CRAFT_PART_INSTALL/man1/chrome.1
       gzip -9n $CRAFT_PART_INSTALL/man1/chrome.1
+      widevineversion=$(wget -O - https://dl.google.com/widevine-cdm/versions.txt | tail -n1)
+      wget "https://dl.google.com/widevine-cdm/${widevineversion}-linux-x64.zip" -O "${widevineversion}-linux-x64.zip"
+      unzip "${widevineversion}-linux-x64.zip"
+      rm -f "${widevineversion}-linux-x64.zip"
+      mkdir -p $CRAFT_PART_INSTALL/usr/lib/chromium-browser/WidevineCdm/_platform_specific/linux_x64
+      mv LICENSE.txt LICENSE
+      mv LICENSE $CRAFT_PART_INSTALL/usr/lib/chromium-browser/WidevineCdm/
+      mv manifest.json $CRAFT_PART_INSTALL/usr/lib/chromium-browser/WidevineCdm/
+      mv libwidevinecdm.so $CRAFT_PART_INSTALL/usr/lib/chromium-browser/WidevineCdm/_platform_specific/linux_x64/
     stage:
       - -usr/lib/*/libsecret-*
     prime:
